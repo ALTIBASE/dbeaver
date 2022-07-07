@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.2"?>
+<!--
+ * DBeaver - Universal Database Manager
+ * Copyright (C) 2010-2022 DBeaver Corp and others
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+  -->
+
+<plugin>
+    <extension-point id="org.jkiss.dbeaver.generic.meta" name="Generic meta model retrieval" schema="schema/org.jkiss.dbeaver.generic.meta.exsd"/>
+
+    <extension point="org.jkiss.dbeaver.dataSourceProvider">
+        <datasource
+            class="org.jkiss.dbeaver.ext.altibase.GenericDataSourceProvider"
+            description="Generic JDBC connector"
+            id="generic"
+            label="Generic"
+            icon="#database_icon_default"
+            dialect="generic">
+            <tree path="generic" label="Generic data source" supportsEntityMerge="true">
+                <items label="#catalog" path="catalog" property="catalogList" icon="#database" optional="true">
+                    <items label="#schema" path="schema" property="schemaList" icon="#schema" optional="true">
+                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTable" label="%tree.tables.node.name" icon="#folder_table" description="%tree.tables.node.tip">
+                            <items label="%tree.table.node.name" path="table" property="physicalTables" icon="#table">
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableColumn" label="%tree.columns.node.name" icon="#columns" description="%tree.columns.node.tip">
+                                    <items label="%tree.column.node.name" path="attribute" property="attributes" icon="#column">
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericUniqueKey" label="%tree.uni_keys.node.name" icon="#constraints" description="%tree.uni_keys.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()">
+                                    <items label="%tree.uni_key.node.name" path="uniqueKey" property="constraints" icon="#unique-key">
+                                        <items label="%tree.uni_key.columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableForeignKey" label="%tree.foreign_keys.node.name" icon="#foreign-keys" description="%tree.foreign_keys.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()">
+                                    <items label="%tree.foreign_key.node.name" path="association" property="associations" icon="#foreign-key">
+                                        <items label="%tree.foreign_key_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableIndex" label="%tree.indexes.node.name" icon="#indexes" description="%tree.indexes.node.tip" visibleIf="object.dataSource.info.supportsIndexes()">
+                                    <items label="%tree.index.node.name" path="index" property="indexes" icon="#index">
+                                        <items label="%tree.index_columns.node.name" path="column" property="attributeReferences" icon="#column" navigable="false" inline="true">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder label="%tree.references.node.name" icon="#references" description="%tree.references.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()" virtual="true">
+                                    <items label="%tree.reference.node.name" path="reference" property="references" icon="#reference" virtual="true">
+                                        <items label="%tree.reference_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true" virtual="true">
+                                        </items>
+                                    </items>
+                                </folder>
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableTrigger" label="%tree.triggers.node.name" icon="#triggers" description="%tree.triggers.node.tip" visibleIf="object.dataSource.metaModel.supportsTriggers(object.dataSource)">
+                                    <items label="%tree.trigger.node.name" path="trigger" property="triggers" icon="#trigger"/>
+                                </folder>
+                                <items label="%tree.sub_table.node.name" optional="true" path="subtable" property="subTables" icon="#table" recursive=".." visibleIf="!object.view">
+                                </items>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericView" label="%tree.tviews.node.name" icon="#folder_view" description="%tree.tviews.node.tip" visibleIf="object.dataSource.metaModel.supportsViews(object.dataSource)">
+                            <items label="%tree.tview.node.name" path="view" property="views" icon="#view">
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableColumn" label="%tree.columns.node.name" icon="#columns" description="View columns">
+                                    <items label="%tree.column.node.name" path="attribute" property="attributes" icon="#column">
+                                    </items>
+                                </folder>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.model.struct.rdb.DBSTableIndex" label="%tree.indexes.node.name" icon="#indexes" description="%tree.indexes.node.tip" visibleIf="object.dataSource.info.supportsIndexes()">
+                            <items icon="#index" label="%tree.index.node.name" path="index" property="indexes" virtual="true">
+                                <items icon="#column" label="%tree.index_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" inline="true" navigable="false" virtual="true">
+                                </items>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericProcedure" label="%tree.procedures.node.name" icon="#procedures" description="Procedures" visibleIf="object.dataSource.info.supportsStoredCode()">
+                            <items label="%tree.procedures.node.name" itemLabel="%tree.procedure.node.name" path="procedure" property="proceduresOnly" icon="#procedure">
+                                <items label="%tree.procedure_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
+                            </items>
+                            <items label="%tree.package.node.name" path="package" property="packages" icon="#package">
+                                <items label="%tree.procedures.node.name" itemLabel="%tree.procedure.node.name" path="procedure" property="procedures" icon="#procedure">
+                                    <items label="%tree.procedure_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false" inline="true"/>
+                                </items>
+                            </items>
+                        </folder>
+                        <folder label="%tree.functions.node.name" icon="#functions" description="Functions" visibleIf="object.dataSource.info.supportsStoredCode() &amp;&amp; object.dataSource.splitProceduresAndFunctions()">
+                            <items label="%tree.functions.node.name" itemLabel="%tree.function.node.name" path="function" property="functionsOnly" icon="#function">
+                                <items label="%tree.function_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericSequence" label="%tree.sequences.node.name" icon="#sequences" description="%tree.sequences.node.tip" visibleIf="object.dataSource.metaModel.supportsSequences(object.dataSource)">
+                            <items label="%tree.sequence.node.name" path="sequence" property="sequences" icon="#sequence"/>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericSynonym" label="%tree.synonyms.node.name" icon="#synonyms" description="Synonyms" visibleIf="object.dataSource.metaModel.supportsSynonyms(object.dataSource)">
+                            <items label="%tree.synonym.node.name" path="synonym" property="synonyms" icon="#synonym"/>
+                        </folder>
+                        <folder id="databaseTrigger" type="org.jkiss.dbeaver.ext.generic.model.GenericContainerTrigger" label="%tree.triggers.node.name" icon="#triggers" description="Global triggers" visibleIf="object.dataSource.metaModel.supportsDatabaseTriggers(object.dataSource)">
+                            <items label="%tree.trigger.node.name" path="trigger" property="triggers" icon="#trigger"/>
+                        </folder>
+                        <folder id="tableTrigger" type="org.jkiss.dbeaver.ext.generic.model.GenericTableTrigger" label="%tree.tableTriggers.node.name" icon="#triggers" description="%tree.tableTriggers.node.tip" visibleIf="object.dataSource.metaModel.supportsTriggers(object.dataSource)">
+                            <items label="%tree.trigger.node.name" path="tableTrigger" property="tableTriggers" icon="#trigger"/>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.model.struct.DBSDataType" label="%tree.dataTypes.node.name" icon="#data_types" description="%tree.dataTypes.node.tip">
+                            <items label="%tree.dataType.node.name" path="dataType" property="dataTypes" icon="#data_type"/>
+                        </folder>
+                    </items>
+                </items>
+            </tree>
+
+            <driver-properties>
+                <propertyGroup label="Parameters" description="Custom driver parameters">
+                    <property id="supports-catalog-selection" label="Driver can change default catalog" description="Driver does support catalog change" type="boolean" required="false" defaultValue="true"/>;
+                    <property id="supports-schema-selection" label="Driver can change default schema" description="Driver does support schema change" type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-indexes" label="Driver supports indexes" description="Driver supports table indexes" type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-table-constraints" label="Driver supports constraints" description="Driver supports table constraints (primary keys)" type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-stored-code" label="Driver supports stored code" description="Whether this driver supports stored code (procedures, functions, packages, etc)" type="boolean" required="false" defaultValue="true"/>
+                    <property id="stored-quoted-case" label="Quoted string case" description="Letter capitalization of quoted strings (mixed/upper/lower)" type="string" required="false" defaultValue=""/>
+                    <property id="stored-unquoted-case" label="Unquoted string case" description="Letter capitalization of unquoted strings (mixed/upper/lower)" type="string" required="false" defaultValue=""/>
+                    <property id="supports-references" label="Driver supports references" description="Driver supports table references (foreign keys)" type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-select-count" label="Driver supports SELECT count(*) clause" description="Driver supports SELECT count(*) clause" type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-views" label="Driver supports views" description="Driver supports table views" type="boolean" required="false" defaultValue="true"/>
+                    <property id="split-procedures-and-functions" label="Split procedures and functions" description="Show procedures and functions in different folders" type="boolean" required="false" defaultValue="false"/>
+                    <property id="script-delimiter" label="Script delimiter" description="Literal for SQL queries separation in scripts" type="string" required="false" defaultValue=";"/>
+                    <property id="script-delimiter-redefiner" label="Script delimiter redefiner" description="SQL clause which redefines script delimiter value" type="string" required="false"/>
+                    <property id="script-delimiter-after-query" label="Use script delimiter after query" description="Keep SQL script delimiter after each SQL query" type="boolean" required="false" defaultValue="false"/>
+                    <property id="script-delimiter-after-block" label="Use script delimiter after SQL block" description="Keep SQL script delimiter after SQL script blocks (BEGIN/END)" type="boolean" required="false" defaultValue="false"/>
+                    <property id="string-escape-char" label="String escape character" description="Character used to escape special symbols in strings" type="string" required="false" defaultValue=""/>
+                    <property id="meta-model" label="Meta model type" description="Type of metadata reading model - standard or indexed" type="string" required="false" defaultValue="" validValues="standard,indexed"/>
+                    <property id="all-objects-pattern" label="All Objects Pattern" description="SQL pattern for all metadata objects" type="string" required="false" defaultValue="%" validValues="null,%"/>
+                    <property id="omit-catalog" label="Omit catalog(s)" description="Do not read and use catalog (aka database) information" type="boolean" required="false" defaultValue="false"/>
+                    <property id="omit-single-catalog" label="Omit single catalog" description="Hide catalog (database) is there is only one catalog on server" type="boolean" required="false" defaultValue="false"/>
+                    <property id="omit-schema" label="Omit schema(s)" description="Do not read and use schemas information" type="boolean" required="false" defaultValue="false"/>
+                    <property id="omit-single-schema" label="Omit single schema" description="Hide schema is there is only one schema on server" type="boolean" required="false" defaultValue="false"/>
+                    <property id="schema-filters-enabled" label="Use schema filters" description="Use JDBC schema filters when database doesn't support catalogs. Otherwise just read all database schemas and filter on client-side." type="boolean" required="false" defaultValue="false"/>
+                    <property id="omit-type-cache" label="Omit type cache" description="Do not use data types provided by driver" type="boolean" required="false" defaultValue="false"/>
+                    <property id="shutdown-url-param" label="Shutdown parameter" description="Database shutdown URL parameter" type="string" required="false" defaultValue=""/>
+                    <property id="create-url-param" label="Create database parameter" description="Database create URL parameter" type="string" required="false" defaultValue=""/>
+                    <property id="supports-multiple-results" label="Driver supports multiple results" description="Driver supports multiple results for a single query." type="boolean" required="false" defaultValue="false"/>
+                    <property id="supports-limits" label="Driver supports result set limit" description="Driver supports multiple result set limit (max rows)." type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-struct-cache" label="Driver supports structure cache" description="Driver supports structure cache reading. Enables schema columns, keys, etc." type="boolean" required="false" defaultValue="true"/>
+                    <property id="supports-truncate" label="Driver supports TRUNCATE operation" description="Driver supports TRUNCATE command. It is much faster than DELETE without criteria." type="boolean" required="false" defaultValue="true"/>
+                    <property id="read-only-data" label="Driver cannot modify data" description="Driver does not support data (e.g. in table) editing." type="boolean" required="false" defaultValue="false"/>
+                    <property id="read-only-meta-data" label="Driver cannot modify meta data" description="Driver does not support meta data (e.g. table or column creating) editing." type="boolean" required="false" defaultValue="false"/>
+                    <property id="supports-multi-insert" label="Driver supports multi insert mode" description="Driver supports multi insert mode: INSERT VALUES(,,)(,,). Used for the multi insert data import" type="boolean" required="false" defaultValue="false"/>
+                </propertyGroup>
+                <propertyGroup label="Queries" description="Custom driver queries">
+                    <property id="query-get-active-db" label="Get active database" description="Query to obtain active database name" type="string" required="false" defaultValue=""/>
+                    <property id="query-set-active-db" label="Set active database" description="Query to change active database" type="string" required="false" defaultValue=""/>
+                    <property id="query-shutdown" label="Shutdown database" description="Query to shutdown active database connection. Used for some embedded databases" type="string" required="false" defaultValue=""/>
+                    <property id="ping-sql" label="PING query" description="Query to check connection state" type="string" required="false" defaultValue=""/>
+                    <property id="dual-table" label="Dual table name" description="Name of dummy 'DUAL' table which is used for expressions evaluation" type="string" required="false" defaultValue=""/>
+                    <property id="active-entity-type" label="Active object type" description="Type of selectable object (schema, catalog)" type="string" required="false" defaultValue="" validValues="catalog,schema"/>
+                    <property id="supports-scroll" label="Driver supports results scrolling" description="Driver supports resultset scrolling" type="boolean" required="false" defaultValue="false"/>
+                    <property id="quote-reserved-words" label="Quote reserved words" description="Quote columns/table names if they conflicts with reserved SQL keywords" type="boolean" required="false" defaultValue="true"/>
+                    <property id="use-search-string-escape" label="Escape LIKE masks in search queries" description="Use to access JDBC metadata API. Enabled by default but should be disabled for some (broken) drivers" type="boolean" required="false" defaultValue="false"/>
+                </propertyGroup>
+                <propertyGroup label="DDL" description="DDL generation options">
+                    <property id="ddl-drop-column-short" label="Drop column short syntax" description="Use 'ALTER TABLE DROP column-name' instead of standard syntax" type="boolean" required="false" defaultValue="false"/>
+                    <property id="ddl-drop-column-brackets" label="Drop column - use brackets" description="Use 'ALTER TABLE DROP (column-name)'" type="boolean" required="false" defaultValue="false"/>
+                    <property id="legacy-sql-dialect" label="Use legacy SQL dialect for DDL" description="Use legacy SQL dialect for DDL" type="boolean" required="false" defaultValue="false"/>
+                    <property id="alter-table-add-column" label="Add COLUMN keyword in alter table query" description="Add COLUMN keyword after keyword ADD and before column name in alter table query" type="boolean" required="false" defaultValue="false"/>
+                    <property id="omit-catalog-name" label="Omit catalog name in queries" description="Omit catalog name in generated queries" type="boolean" required="false" defaultValue="false"/>
+                </propertyGroup>
+                <propertyGroup label="Formatting" description="SQL values formats">
+                    <property id="native-format-timestamp" label="Timestamp format" description="Format pattern for timestamp columns" type="string" required="false"/>
+                    <property id="native-format-date" label="Date format" description="Format pattern for date columns" type="string" required="false"/>
+                    <property id="native-format-time" label="Time format" description="Format pattern for time columns" type="string" required="false"/>
+                </propertyGroup>
+
+            </driver-properties>
+
+            <drivers managable="true">
+
+                <driver
+                        id="altibase"
+                        label="Altibase"
+                        icon="icons/altibase_icon.png"
+                        iconBig="icons/altibase_icon_big.png"
+                        class="Altibase.jdbc.driver.AltibaseDriver"
+                        sampleURL="jdbc:Altibase://{host}:{port}/{database}"
+                        useURL="false"
+                        defaultPort="20300"
+                        defaultDatabase="mydb"
+                        defaultUser="SYS"
+                        description="Altibase JDBC Driver"
+                        promoted="1"
+                        categories="sql">
+                </driver>
+                
+             </drivers>
+
+        </datasource>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.dataTypeProvider">
+        <provider
+                class="org.jkiss.dbeaver.ext.altibase.data.GenericValueHandlerProvider"
+                id="org.jkiss.dbeaver.ext.generic.data.GenericValueHandlerProvider"
+                label="Generic data types provider">
+            <datasource id="generic"/>
+            <!-- Date/time value handler - needed to provide native datetime value formatting. Formatting itself provided in drivers configuration. -->
+            <type kind="DATETIME"/>
+        </provider>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.objectManager">
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericTableManager"         objectType="org.jkiss.dbeaver.ext.generic.model.GenericTable"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericViewManager"          objectType="org.jkiss.dbeaver.ext.generic.model.GenericView"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericTableColumnManager"   objectType="org.jkiss.dbeaver.ext.generic.model.GenericTableColumn"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericPrimaryKeyManager"    objectType="org.jkiss.dbeaver.ext.generic.model.GenericUniqueKey"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericForeignKeyManager"    objectType="org.jkiss.dbeaver.ext.generic.model.GenericTableForeignKey"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericIndexManager"         objectType="org.jkiss.dbeaver.ext.generic.model.GenericTableIndex"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericProcedureManager"     objectType="org.jkiss.dbeaver.ext.generic.model.GenericProcedure"/>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.generic.meta">
+        <meta id="indexed" class="org.jkiss.dbeaver.ext.generic.model.meta.GenericMetaModel">
+            <object type="catalog">
+                <column id="TABLE_CAT" index="1"/>
+            </object>
+            <object type="schema">
+                <column id="TABLE_SCHEM" index="1"/>
+                <column id="TABLE_CATALOG" index="2"/>
+            </object>
+            <object type="table-type">
+                <column id="TABLE_TYPE" index="1"/>
+            </object>
+            <object type="table">
+                <column id="TABLE_CAT" index="1"/>
+                <column id="TABLE_SCHEM" index="2"/>
+                <column id="TABLE_NAME" index="3"/>
+                <column id="TABLE_TYPE" index="4"/>
+                <column id="REMARKS" index="5"/>
+                <column id="TYPE_CAT" index="6"/>
+                <column id="TYPE_SCHEM" index="7"/>
+                <column id="TYPE_NAME" index="8"/>
+                <column id="SELF_REFERENCING_COL_NAME" index="9"/>
+                <column id="REF_GENERATION" index="10"/>
+            </object>
+            <object type="table-column">
+                <column id="TABLE_CAT" index="1"/>
+                <column id="TABLE_SCHEM" index="2"/>
+                <column id="TABLE_NAME" index="3"/>
+                <column id="COLUMN_NAME" index="4"/>
+                <column id="DATA_TYPE" index="5"/>
+                <column id="TYPE_NAME" index="6"/>
+                <column id="COLUMN_SIZE" index="7"/>
+                <column id="BUFFER_LENGTH" index="8"/>
+                <column id="DECIMAL_DIGITS" index="9"/>
+                <column id="NUM_PREC_RADIX" index="10"/>
+                <column id="NULLABLE" index="11"/>
+                <column id="REMARKS" index="12"/>
+                <column id="COLUMN_DEF" index="13"/>
+                <column id="SQL_DATA_TYPE" index="14"/>
+                <column id="SQL_DATETIME_SUB" index="15"/>
+                <column id="CHAR_OCTET_LENGTH" index="16"/>
+                <column id="ORDINAL_POSITION" index="17"/>
+                <column id="IS_NULLABLE" index="18"/>
+                <column id="SCOPE_CATALOG" index="19"/>
+                <column id="SCOPE_SCHEMA" index="20"/>
+                <column id="SCOPE_TABLE" index="21"/>
+                <column id="SOURCE_DATA_TYPE" index="22"/>
+                <column id="IS_AUTOINCREMENT" index="23"/>
+                <column id="IS_GENERATEDCOLUMN" index="24"/>
+            </object>
+            <object type="primary-key">
+                <column id="TABLE_CAT" index="1"/>
+                <column id="TABLE_SCHEM" index="2"/>
+                <column id="TABLE_NAME" index="3"/>
+                <column id="COLUMN_NAME" index="4"/>
+                <column id="KEY_SEQ" index="5"/>
+                <column id="PK_NAME" index="6"/>
+            </object>
+            <object type="foreign-key">
+                <column id="PKTABLE_CAT" index="1"/>
+                <column id="PKTABLE_SCHEM" index="2"/>
+                <column id="PKTABLE_NAME" index="3"/>
+                <column id="PKCOLUMN_NAME" index="4"/>
+                <column id="FKTABLE_CAT" index="5"/>
+                <column id="FKTABLE_SCHEM" index="6"/>
+                <column id="FKTABLE_NAME" index="7"/>
+                <column id="FKCOLUMN_NAME" index="8"/>
+                <column id="KEY_SEQ" index="9"/>
+                <column id="UPDATE_RULE" index="10"/>
+                <column id="DELETE_RULE" index="11"/>
+                <column id="FK_NAME" index="12"/>
+                <column id="PK_NAME" index="13"/>
+                <column id="DEFERRABILITY" index="14"/>
+            </object>
+            <object type="procedure">
+                <column id="PROCEDURE_CAT" index="1"/>
+                <column id="PROCEDURE_SCHEM" index="2"/>
+                <column id="PROCEDURE_NAME" index="3"/>
+                <column id="REMARKS" index="4"/>
+                <column id="PROCEDURE_TYPE" index="5"/>
+                <column id="SPECIFIC_NAME" index="6"/>
+            </object>
+            <object type="procedure-column">
+                <column id="PROCEDURE_CAT" index="1"/>
+                <column id="PROCEDURE_SCHEM" index="2"/>
+                <column id="PROCEDURE_NAME" index="3"/>
+                <column id="COLUMN_NAME" index="4"/>
+                <column id="COLUMN_TYPE" index="5"/>
+                <column id="DATA_TYPE" index="6"/>
+                <column id="TYPE_NAME" index="7"/>
+                <column id="PRECISION" index="8"/>
+                <column id="LENGTH" index="9"/>
+                <column id="SCALE" index="10"/>
+                <column id="RADIX" index="11"/>
+                <column id="NULLABLE" index="12"/>
+                <column id="REMARKS" index="13"/>
+                <column id="COLUMN_DEF" index="14"/>
+                <column id="SQL_DATA_TYPE" index="15"/>
+                <column id="SQL_DATETIME_SUB" index="16"/>
+                <column id="CHAR_OCTET_LENGTH" index="17"/>
+                <column id="ORDINAL_POSITION" index="18"/>
+                <column id="IS_NULLABLE" index="19"/>
+                <column id="SPECIFIC_NAME" index="20"/>
+            </object>
+            <object type="index">
+                <column id="TABLE_CAT" index="1"/>
+                <column id="TABLE_SCHEM" index="2"/>
+                <column id="TABLE_NAME" index="3"/>
+                <column id="NON_UNIQUE" index="4"/>
+                <column id="INDEX_QUALIFIER" index="5"/>
+                <column id="INDEX_NAME" index="6"/>
+                <column id="TYPE" index="7"/>
+                <column id="ORDINAL_POSITION" index="8"/>
+                <column id="COLUMN_NAME" index="9"/>
+                <column id="ASC_OR_DESC" index="10"/>
+                <column id="CARDINALITY" index="11"/>
+                <column id="PAGES" index="12"/>
+                <column id="FILTER_CONDITION" index="13"/>
+            </object>
+        </meta>
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.mavenRepository">
+        <repository id="monetdb-maven-repo" name="MonetDB Repository" url="https://clojars.org/repo/" order="20">
+            <scope group="monetdb"/>
+        </repository>
+        <repository id="cratedb-maven-repo" name="CrateDB Repository" url="https://dl.bintray.com/crate/crate" order="21">
+            <scope group="io.crate"/>
+        </repository>
+
+<!--
+        <repository id="s3-maven-qubole-releases" name="Qubole Release Repository on S3" url="http://maven-qubole.s3-website-us-east-1.amazonaws.com/maven/release">
+            <scope group="com.qubole"/>
+        </repository>
+-->
+    </extension>
+
+    <extension point="org.jkiss.dbeaver.sqlDialect">
+        <dialect id="generic" parent="basic" class="org.jkiss.dbeaver.ext.altibase.model.GenericSQLDialect" label="Generic" description="Dialect based on JDBC API information." icon="#database_icon_default" hidden="true">
+        </dialect>
+    </extension>
+
+</plugin>
