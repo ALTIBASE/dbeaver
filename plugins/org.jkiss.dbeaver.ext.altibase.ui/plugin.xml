@@ -5,21 +5,23 @@
 
     <extension point="org.jkiss.dbeaver.dataSourceView">
         <view
-                id="org.jkiss.dbeaver.ext.generic.dataSourceWizardView"
-                dataSource="generic"
+                id="org.jkiss.dbeaver.ext.altibase.dataSourceWizardView"
+                dataSource="altibase"
                 targetID="org.jkiss.dbeaver.ext.ui.newConnectionWizard"
-                label="%dialog.connection.header"
-                class="org.jkiss.dbeaver.ext.altibase.views.GenericConnectionPage"
-                icon="#database_icon_default">
+                label="%altibase.dialog.connection.header"
+                class="org.jkiss.dbeaver.ext.altibase.ui.views.AltibaseConnectionPage"
+                icon="icons/altibase_icon.png">
         </view>
         <view
-                class="org.jkiss.dbeaver.ext.altibase.views.GenericConnectionPage"
-                icon="#database_icon_default"
+                class="org.jkiss.dbeaver.ext.altibase.ui.views.AltibaseConnectionPage"
+                icon="icons/altibase_icon.png"
                 id="org.jkiss.dbeaver.ext.generic.dataSourceEditorView"
                 dataSource="generic"
-                label="%dialog.connection.header"
+                label="%altibase.dialog.connection.header"
                 targetID="org.jkiss.dbeaver.ext.ui.editConnectionDialog">
         </view>
+        
+
     </extension>
 
     <extension point="org.jkiss.dbeaver.databaseEditor">
@@ -36,7 +38,7 @@
         </editor>
         <editor
                 id="generic.view.source.view"
-                class="org.jkiss.dbeaver.ext.altibase.editors.GenericSourceViewEditor"
+                class="org.jkiss.dbeaver.ext.altibase.ui.editors.GenericSourceViewEditor"
                 main="false"
                 label="Definition"
                 description="View definition"
@@ -46,7 +48,7 @@
                 embeddable="false">
             <objectType name="org.jkiss.dbeaver.ext.generic.model.GenericView"/>
         </editor>
-        <editor id="generic.source.view" class="org.jkiss.dbeaver.ext.altibase.editors.GenericSourceViewEditor"
+        <editor id="generic.source.view" class="org.jkiss.dbeaver.ext.altibase.ui.editors.GenericSourceViewEditor"
                 label="%editor.source.name" description="%editor.source.name" icon="#sql_text" position="additions_middle"
                 contributor="org.jkiss.dbeaver.ui.editors.sql.SQLEditorContributorNested" type="folder" embeddable="false">
             <objectType name="org.jkiss.dbeaver.ext.generic.model.GenericScriptObject"/>

@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: DBeaver Generic UI Plug-in
-Bundle-SymbolicName: org.jkiss.dbeaver.ext.generic.ui;singleton:=true
-Bundle-Version: 1.0.60.qualifier
+Bundle-Name: DBeaver Altibase UI Support
+Bundle-SymbolicName: org.jkiss.dbeaver.ext.altibase.ui;singleton:=true
+Bundle-Version: 1.0.0.qualifier
 Bundle-Release-Date: 20220627
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources,
@@ -21,10 +21,11 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jface.text,
  org.eclipse.ui.editors,
  org.eclipse.ui.ide,
- org.eclipse.ui.workbench.texteditor
+ org.eclipse.ui.workbench.texteditor,
+ org.jkiss.dbeaver.ext.altibase
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
-Bundle-Vendor: JKISS
+Bundle-Vendor: Altibase
 Bundle-Localization: OSGI-INF/l10n/bundle
-Export-Package: org.jkiss.dbeaver.ext.altibase.views
-Automatic-Module-Name: org.jkiss.dbeaver.ext.generic.ui
+Export-Package: org.jkiss.dbeaver.ext.altibase.ui.views
+Automatic-Module-Name: org.jkiss.dbeaver.ext.altibase.ui

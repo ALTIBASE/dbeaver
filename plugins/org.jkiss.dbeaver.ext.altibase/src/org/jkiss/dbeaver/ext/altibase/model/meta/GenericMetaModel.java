@@ -20,7 +20,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.GenericConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.model.*;
 import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.exec.DBCFeatureNotSupportedException;
@@ -142,7 +142,7 @@ public class GenericMetaModel {
         }
 
         try {
-            final GenericMetaObject schemaObject = getMetaObject(GenericConstants.OBJECT_SCHEMA);
+            final GenericMetaObject schemaObject = getMetaObject(AltibaseConstants.OBJECT_SCHEMA);
             final DBSObjectFilter schemaFilters = dataSource.getContainer().getObjectFilter(GenericSchema.class, catalog, false);
 
             final List<GenericSchema> tmpSchemas = new ArrayList<>();
@@ -318,7 +318,7 @@ public class GenericMetaModel {
         Map<String, GenericProcedure> funcMap = new LinkedHashMap<>();
 
         GenericDataSource dataSource = container.getDataSource();
-        GenericMetaObject procObject = dataSource.getMetaObject(GenericConstants.OBJECT_PROCEDURE);
+        GenericMetaObject procObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load procedures")) {
             boolean supportsFunctions = false;
             if (hasFunctionSupport()) {
@@ -664,7 +664,7 @@ public class GenericMetaModel {
     }
 
     public boolean isView(String tableType) {
-        return tableType.toUpperCase(Locale.ENGLISH).contains(GenericConstants.TABLE_TYPE_VIEW);
+        return tableType.toUpperCase(Locale.ENGLISH).contains(AltibaseConstants.TABLE_TYPE_VIEW);
     }
 
     //////////////////////////////////////////////////////

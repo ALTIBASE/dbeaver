@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.edit;
 
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.GenericConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTable;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTableBase;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTableColumn;
@@ -136,13 +136,13 @@ public class GenericTableColumnManager extends SQLTableColumnManager<GenericTabl
     @Override
     protected long getDDLFeatures(GenericTableColumn object) {
         long features = 0;
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
             features |= DDL_FEATURE_OMIT_COLUMN_CLAUSE_IN_DROP;
         }
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
             features |= DDL_FEATURE_USER_BRACKETS_IN_DROP;
         }
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
             features |= FEATURE_ALTER_TABLE_ADD_COLUMN;
         }
         return features;

@@ -15,12 +15,17 @@
  * limitations under the License.
  */
 
-package org.jkiss.dbeaver.ext.altibase.internal;
+package org.jkiss.dbeaver.ext.altibase.ui.internal;
 
 import org.eclipse.osgi.util.NLS;
 
-public class GenericMessages extends NLS {
-    static final String BUNDLE_NAME = "org.jkiss.dbeaver.ext.generic.internal.GenericResources"; //$NON-NLS-1$
+public class AltibaseUIMessages extends NLS {
+    static final String BUNDLE_NAME = "org.jkiss.dbeaver.ext.altibase.ui.internal.AltibaseUIMessages"; //$NON-NLS-1$
+
+    static {
+        // initialize resource bundle
+        NLS.initializeMessages(BUNDLE_NAME, AltibaseUIMessages.class);
+    }
 
     public static String dialog_connection_advanced_tab;
     public static String dialog_connection_advanced_tab_tooltip;
@@ -43,10 +48,6 @@ public class GenericMessages extends NLS {
     public static String dialog_connection_test_connection_button;
     public static String dialog_connection_user_name_label;
 
-    static {
-        // initialize resource bundle
-        NLS.initializeMessages(BUNDLE_NAME, GenericMessages.class);
-    }
-    private GenericMessages() {
+    private AltibaseUIMessages() {
     }
 }

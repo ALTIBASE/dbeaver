@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.jkiss.dbeaver.ext.altibase.editors;
+package org.jkiss.dbeaver.ext.altibase.ui.editors;
 
 import org.jkiss.dbeaver.model.DBPScriptObject;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;

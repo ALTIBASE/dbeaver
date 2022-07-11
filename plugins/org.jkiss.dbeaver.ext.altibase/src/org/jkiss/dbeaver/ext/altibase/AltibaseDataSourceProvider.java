@@ -41,14 +41,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GenericDataSourceProvider extends JDBCDataSourceProvider {
+public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
 
     private final Map<String, GenericMetaModelDescriptor> metaModels = new HashMap<>();
     private static final String EXTENSION_ID = "org.jkiss.dbeaver.generic.meta";
 
-    public GenericDataSourceProvider()
+    public AltibaseDataSourceProvider()
     {
-        metaModels.put(GenericConstants.META_MODEL_STANDARD, new GenericMetaModelDescriptor());
+        metaModels.put(AltibaseConstants.META_MODEL_STANDARD, new GenericMetaModelDescriptor());
 
         List<String> replacedModels = new ArrayList<>();
         IExtensionRegistry extensionRegistry = Platform.getExtensionRegistry();
@@ -88,8 +88,8 @@ public class GenericDataSourceProvider extends JDBCDataSourceProvider {
         throws DBException
     {
         GenericMetaModelDescriptor metaModel = null;
-        Object metaModelId = container.getDriver().getDriverParameter(GenericConstants.PARAM_META_MODEL);
-        if (metaModelId != null && !GenericConstants.META_MODEL_STANDARD.equals(metaModelId)) {
+        Object metaModelId = container.getDriver().getDriverParameter(AltibaseConstants.PARAM_META_MODEL);
+        if (metaModelId != null && !AltibaseConstants.META_MODEL_STANDARD.equals(metaModelId)) {
             metaModel = metaModels.get(metaModelId.toString());
             if (metaModel == null) {
                 log.warn("Meta model '" + metaModelId + "' not recognized. Default one will be used");
@@ -107,7 +107,7 @@ public class GenericDataSourceProvider extends JDBCDataSourceProvider {
     }
 
     protected GenericMetaModelDescriptor getStandardMetaModel() {
-        return metaModels.get(GenericConstants.META_MODEL_STANDARD);
+        return metaModels.get(AltibaseConstants.META_MODEL_STANDARD);
     }
 
     @Override
@@ -115,7 +115,7 @@ public class GenericDataSourceProvider extends JDBCDataSourceProvider {
         DBPPropertyDescriptor[] connectionProperties = super.getConnectionProperties(monitor, driver, connectionInfo);
         if (connectionProperties == null || connectionProperties.length == 0) {
             // Try to get list of supported properties from custom driver config
-            String driverParametersString = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_DRIVER_PROPERTIES));
+            String driverParametersString = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_DRIVER_PROPERTIES));
             if (!driverParametersString.isEmpty()) {
                 String[] propList = driverParametersString.split(",");
                 connectionProperties = new DBPPropertyDescriptor[propList.length];

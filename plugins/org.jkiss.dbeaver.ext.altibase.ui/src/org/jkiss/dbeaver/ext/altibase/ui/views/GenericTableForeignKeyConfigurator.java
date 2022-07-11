@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.jkiss.dbeaver.ext.altibase.views;
+package org.jkiss.dbeaver.ext.altibase.ui.views;
 
 import org.jkiss.dbeaver.ext.generic.model.GenericTableColumn;
 import org.jkiss.dbeaver.ext.generic.model.GenericTableForeignKey;

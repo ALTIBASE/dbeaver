@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.ext.altibase.GenericConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPIdentifierCase;
 import org.jkiss.dbeaver.model.connection.DBPDriver;
@@ -69,50 +69,50 @@ public class GenericSQLDialect extends JDBCSQLDialect {
     public void initDriverSettings(JDBCSession session, JDBCDataSource dataSource, JDBCDatabaseMetaData metaData) {
         super.initDriverSettings(session, dataSource, metaData);
         DBPDriver driver = dataSource.getContainer().getDriver();
-        String delimitersString = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_SCRIPT_DELIMITER));
+        String delimitersString = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_SCRIPT_DELIMITER));
         if (delimitersString.contains(",")) {
             scriptDelimiters = delimitersString.split(",");
         } else if (!CommonUtils.isEmpty(delimitersString)){
             scriptDelimiters = new String[]{delimitersString};
         }
-        String escapeStr = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_STRING_ESCAPE_CHAR));
+        String escapeStr = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_STRING_ESCAPE_CHAR));
         if (!CommonUtils.isEmpty(escapeStr)) {
             this.stringEscapeCharacter = escapeStr.charAt(0);
         }
-        this.scriptDelimiterRedefiner = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_SCRIPT_DELIMITER_REDEFINER));
-        this.hasDelimiterAfterQuery = CommonUtils.toBoolean(driver.getDriverParameter(GenericConstants.PARAM_SQL_DELIMITER_AFTER_QUERY));
-        this.hasDelimiterAfterBlock = CommonUtils.toBoolean(driver.getDriverParameter(GenericConstants.PARAM_SQL_DELIMITER_AFTER_BLOCK));
-        this.legacySQLDialect = CommonUtils.toBoolean(driver.getDriverParameter(GenericConstants.PARAM_LEGACY_DIALECT));
+        this.scriptDelimiterRedefiner = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_SCRIPT_DELIMITER_REDEFINER));
+        this.hasDelimiterAfterQuery = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SQL_DELIMITER_AFTER_QUERY));
+        this.hasDelimiterAfterBlock = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SQL_DELIMITER_AFTER_BLOCK));
+        this.legacySQLDialect = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_LEGACY_DIALECT));
         this.supportsUpsert = ((GenericDataSource)dataSource).getMetaModel().supportsUpsertStatement();
         if (this.supportsUpsert) {
             addSQLKeyword("UPSERT");
         }
         String driverUnquotedCase = CommonUtils.toString(
-            driver.getDriverParameter(GenericConstants.PARAM_STORED_UNQUOTED_CASE),
+            driver.getDriverParameter(AltibaseConstants.PARAM_STORED_UNQUOTED_CASE),
             null);
         if (!CommonUtils.isEmpty(driverUnquotedCase)) {
             unquotedCase = CommonUtils.valueOf(DBPIdentifierCase.class, driverUnquotedCase.toUpperCase());
         }
 
         String driverQuotedCase = CommonUtils.toString(
-            driver.getDriverParameter(GenericConstants.PARAM_STORED_QUOTED_CASE),
+            driver.getDriverParameter(AltibaseConstants.PARAM_STORED_QUOTED_CASE),
             null);
         if (!CommonUtils.isEmpty(driverQuotedCase)) {
             quotedCase = CommonUtils.valueOf(DBPIdentifierCase.class, driverQuotedCase.toUpperCase());
         }
-        this.useSearchStringEscape = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_USE_SEARCH_STRING_ESCAPE), false);
+        this.useSearchStringEscape = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_USE_SEARCH_STRING_ESCAPE), false);
 
-        this.quoteReservedWords = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_QUOTE_RESERVED_WORDS), true);
-        this.testSQL = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_QUERY_PING));
+        this.quoteReservedWords = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_QUOTE_RESERVED_WORDS), true);
+        this.testSQL = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_QUERY_PING));
         if (CommonUtils.isEmpty(this.testSQL)) {
-            this.testSQL = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_QUERY_GET_ACTIVE_DB));
+            this.testSQL = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_QUERY_GET_ACTIVE_DB));
         }
-        this.dualTable = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_DUAL_TABLE));
+        this.dualTable = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_DUAL_TABLE));
         if (this.dualTable.isEmpty()) {
             this.dualTable = null;
         }
-        this.omitCatalogName = CommonUtils.toBoolean(driver.getDriverParameter(GenericConstants.PARAM_OMIT_CATALOG_NAME));
-        this.supportsMultiInsert = CommonUtils.toBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_MULTI_INSERT));
+        this.omitCatalogName = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_OMIT_CATALOG_NAME));
+        this.supportsMultiInsert = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_MULTI_INSERT));
     }
 
     @NotNull

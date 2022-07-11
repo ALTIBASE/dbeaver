@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.dbeaver.ext.altibase.views;
+package org.jkiss.dbeaver.ext.altibase.ui.views;
 
 import org.eclipse.jface.dialogs.IDialogPage;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -29,8 +29,8 @@ import org.eclipse.swt.widgets.*;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.internal.GenericMessages;
 import org.jkiss.dbeaver.ext.generic.GenericConstants;
+import org.jkiss.dbeaver.ext.altibase.ui.internal.AltibaseUIMessages;
 import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.DBPImage;
@@ -55,23 +55,20 @@ import java.util.List;
 import java.util.*;
 
 /**
- * GenericConnectionPage
+ * Altiabse ConnectionPage
  */
-public class GenericConnectionPage extends ConnectionPageWithAuth implements IDialogPageProvider
+public class AltibaseConnectionPage extends ConnectionPageWithAuth implements IDialogPageProvider
 {
-    private static final Log log = Log.getLog(GenericConnectionPage.class);
+    private static final Log log = Log.getLog(AltibaseConnectionPage.class);
 
-    // Host/port
     private Text hostText;
     private Text portText;
-    // server/DB/path
     private Text serverText;
     private Text dbText;
     private Text pathText;
-    // URL
     private Text urlText;
 
-    private boolean isCustom;
+    private boolean isCustomUrl;
     private JDBCURL.MetaURL metaURL;
 
     private Composite settingsGroup;
@@ -85,7 +82,20 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
     private static final String GROUP_PATH = "path"; //$NON-NLS-1$
     private static final String GROUP_LOGIN = "login"; //$NON-NLS-1$
     private boolean activated;
+    
+    private final Image LOGO_ALTIBASE;
 
+    public AltibaseConnectionPage() {
+    	LOGO_ALTIBASE = createImage("icons/altibase_logo_wide.png");
+    }
+    
+    @Override
+    public void dispose()
+    {
+        super.dispose();
+        UIUtils.dispose(LOGO_ALTIBASE);
+    }
+    
     @Override
     public void createControl(Composite composite)
     {
@@ -100,13 +110,13 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         GridData gd = new GridData(GridData.FILL_BOTH);
         addrGroup.setLayoutData(gd);
 
-        settingsGroup = UIUtils.createControlGroup(addrGroup, GenericMessages.dialog_connection_general_tab, 4, GridData.FILL_HORIZONTAL, 0);
+        settingsGroup = UIUtils.createControlGroup(addrGroup, AltibaseUIMessages.dialog_connection_general_tab, 4, GridData.FILL_HORIZONTAL, 0);
         GridLayout gl = new GridLayout(4, false);
         settingsGroup.setLayout(gl);
 
         {
             Label urlLabel = new Label(settingsGroup, SWT.NONE);
-            urlLabel.setText(GenericMessages.dialog_connection_jdbc_url_);
+            urlLabel.setText(AltibaseUIMessages.dialog_connection_jdbc_url_);
             gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
             urlLabel.setLayoutData(gd);
 
@@ -123,7 +133,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         }
         {
             Label hostLabel = new Label(settingsGroup, SWT.NONE);
-            hostLabel.setText(GenericMessages.dialog_connection_host_label);
+            hostLabel.setText(AltibaseUIMessages.dialog_connection_host_label);
             hostLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
             hostText = new Text(settingsGroup, SWT.BORDER);
@@ -133,7 +143,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             hostText.addModifyListener(textListener);
 
             Label portLabel = new Label(settingsGroup, SWT.NONE);
-            portLabel.setText(GenericMessages.dialog_connection_port_label);
+            portLabel.setText(AltibaseUIMessages.dialog_connection_port_label);
             portLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
             portText = new Text(settingsGroup, SWT.BORDER);
@@ -151,7 +161,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
         {
             Label serverLabel = new Label(settingsGroup, SWT.NONE);
-            serverLabel.setText(GenericMessages.dialog_connection_server_label);
+            serverLabel.setText(AltibaseUIMessages.dialog_connection_server_label);
             serverLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
             serverText = new Text(settingsGroup, SWT.BORDER);
@@ -170,14 +180,12 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
         {
             Label dbLabel = new Label(settingsGroup, SWT.NONE);
-            dbLabel.setText(GenericMessages.dialog_connection_database_schema_label);
+            dbLabel.setText(AltibaseUIMessages.dialog_connection_database_schema_label);
             dbLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
             dbText = new Text(settingsGroup, SWT.BORDER);
             gd = new GridData(GridData.FILL_HORIZONTAL);
             gd.grabExcessHorizontalSpace = true;
-            //gd.widthHint = 270;
-            //gd.horizontalSpan = 3;
             dbText.setLayoutData(gd);
             dbText.addModifyListener(textListener);
 
@@ -191,7 +199,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         // Path
         {
             Label pathLabel = new Label(settingsGroup, SWT.NONE);
-            pathLabel.setText(GenericMessages.dialog_connection_path_label);
+            pathLabel.setText(AltibaseUIMessages.dialog_connection_path_label);
             pathLabel.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_END));
 
             pathText = new Text(settingsGroup, SWT.BORDER);
@@ -211,7 +219,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             //gd.widthHint = 150;
             buttonsPanel.setLayoutData(gd);
 
-            UIUtils.createDialogButton(buttonsPanel, GenericMessages.dialog_connection_browse_button, null, GenericMessages.dialog_connection_browse_button_tip, new SelectionAdapter() {
+            UIUtils.createDialogButton(buttonsPanel, AltibaseUIMessages.dialog_connection_browse_button, null, AltibaseUIMessages.dialog_connection_browse_button_tip, new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     final String path = showDatabaseFileSelectorDialog(SWT.OPEN);
@@ -221,7 +229,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                 }
             });
 
-            UIUtils.createDialogButton(buttonsPanel, GenericMessages.dialog_connection_create_button, null, GenericMessages.dialog_connection_create_button_tip, new SelectionAdapter() {
+            UIUtils.createDialogButton(buttonsPanel, AltibaseUIMessages.dialog_connection_create_button, null, AltibaseUIMessages.dialog_connection_create_button_tip, new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     final String path = showDatabaseFileSelectorDialog(SWT.SAVE);
@@ -267,7 +275,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                     log.debug("Can't find directory path", ex);
                 }
             }
-            dialog.setText(GenericMessages.dialog_connection_db_file_chooser_text);
+            dialog.setText(AltibaseUIMessages.dialog_connection_db_file_chooser_text);
             return dialog.open();
         } else {
             DirectoryDialog dialog = new DirectoryDialog(getShell(), SWT.NONE);
@@ -280,8 +288,8 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                     dialog.setFilterPath(curFolder.getParentFile().getAbsolutePath());
                 }
             }
-            dialog.setText(GenericMessages.dialog_connection_db_folder_chooser_text);
-            dialog.setMessage(GenericMessages.dialog_connection_db_folder_chooser_message);
+            dialog.setText(AltibaseUIMessages.dialog_connection_db_folder_chooser_text);
+            dialog.setMessage(AltibaseUIMessages.dialog_connection_db_folder_chooser_message);
             return dialog.open();
         }
     }
@@ -297,7 +305,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
     @Override
     protected void updateDriverInfo(DBPDriver driver) {
-        if (!isCustom) {
+        if (!isCustomUrl) {
             site.getActiveDataSource().getConnectionConfiguration().setUrl(null);
         }
         parseSampleURL(driver);
@@ -307,7 +315,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
     @Override
     public boolean isComplete()
     {
-        if (isCustom) {
+        if (isCustomUrl) {
             return !CommonUtils.isEmpty(urlText.getText());
         } else {
             if (metaURL == null) {
@@ -330,11 +338,13 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
     @Override
     protected boolean isCustomURL()
     {
-        return isCustom;
+        return isCustomUrl;
     }
 
     @Override
     public Image getImage() {
+    	/*
+    	 * TODO: Remove
         DBPDriver driver = getSite().getDriver();
         DBPImage iconBig = driver.getIconBig();
         if (iconBig != null) {
@@ -347,8 +357,8 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
                 log.error(e);
             }
         }
-
-        return super.getImage();
+		*/
+        return LOGO_ALTIBASE;
     }
 
     @Override
@@ -359,7 +369,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         // Load values from new connection info
         DBPConnectionConfiguration connectionInfo = site.getActiveDataSource().getConnectionConfiguration();
         this.parseSampleURL(site.getDriver());
-        if (!isCustom) {
+        if (!isCustomUrl) {
             if (hostText != null) {
                 if (!CommonUtils.isEmpty(connectionInfo.getHostName())) {
                     hostText.setText(CommonUtils.notEmpty(connectionInfo.getHostName()));
@@ -457,7 +467,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
 
         super.saveSettings(dataSource);
 
-        if (isCustom) {
+        if (isCustomUrl) {
             if (urlText != null) {
                 connectionInfo.setUrl(urlText.getText().trim());
             }
@@ -473,7 +483,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
         metaURL = null;
 
         if (!CommonUtils.isEmpty(driver.getSampleURL())) {
-            isCustom = false;
+            isCustomUrl = false;
             try {
                 metaURL = JDBCURL.parseSampleURL(driver.getSampleURL());
             } catch (DBException e) {
@@ -487,7 +497,7 @@ public class GenericConnectionPage extends ConnectionPageWithAuth implements IDi
             showControlGroup(GROUP_DB, properties.contains(JDBCConstants.PROP_DATABASE));
             showControlGroup(GROUP_PATH, properties.contains(JDBCConstants.PROP_FOLDER) || properties.contains(JDBCConstants.PROP_FILE));
         } else {
-            isCustom = true;
+            isCustomUrl = true;
             showControlGroup(GROUP_HOST, false);
             showControlGroup(GROUP_SERVER, false);
             showControlGroup(GROUP_DB, false);

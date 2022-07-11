@@ -18,38 +18,42 @@
   -->
 
 <plugin>
-    <extension-point id="org.jkiss.dbeaver.generic.meta" name="Generic meta model retrieval" schema="schema/org.jkiss.dbeaver.generic.meta.exsd"/>
 
     <extension point="org.jkiss.dbeaver.dataSourceProvider">
         <datasource
-            class="org.jkiss.dbeaver.ext.altibase.GenericDataSourceProvider"
-            description="Generic JDBC connector"
-            id="generic"
-            label="Generic"
-            icon="#database_icon_default"
+            class="org.jkiss.dbeaver.ext.altibase.AltibaseDataSourceProvider"
+            description="Altibase JDBC connector"
+            id="altibase"
+            label="Altibase"
+            icon="icons/altibase_icon.png"
             dialect="generic">
-            <tree path="generic" label="Generic data source" supportsEntityMerge="true">
+            <tree
+                  icon="icons/altibase_icon.png"
+                  iconBig="icons/altibase_icon_big.png"
+                  label="Generic data source"
+                  path="generic"
+                  supportsEntityMerge="true">
                 <items label="#catalog" path="catalog" property="catalogList" icon="#database" optional="true">
                     <items label="#schema" path="schema" property="schemaList" icon="#schema" optional="true">
-                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTable" label="%tree.tables.node.name" icon="#folder_table" description="%tree.tables.node.tip">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericTable" label="%tree.tables.node.name" icon="#folder_table" description="%tree.tables.node.tip">
                             <items label="%tree.table.node.name" path="table" property="physicalTables" icon="#table">
-                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableColumn" label="%tree.columns.node.name" icon="#columns" description="%tree.columns.node.tip">
+                                <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericTableColumn" label="%tree.columns.node.name" icon="#columns" description="%tree.columns.node.tip">
                                     <items label="%tree.column.node.name" path="attribute" property="attributes" icon="#column">
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericUniqueKey" label="%tree.uni_keys.node.name" icon="#constraints" description="%tree.uni_keys.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()">
+                                <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericUniqueKey" label="%tree.uni_keys.node.name" icon="#constraints" description="%tree.uni_keys.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()">
                                     <items label="%tree.uni_key.node.name" path="uniqueKey" property="constraints" icon="#unique-key">
                                         <items label="%tree.uni_key.columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
                                         </items>
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableForeignKey" label="%tree.foreign_keys.node.name" icon="#foreign-keys" description="%tree.foreign_keys.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()">
+                                <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericTableForeignKey" label="%tree.foreign_keys.node.name" icon="#foreign-keys" description="%tree.foreign_keys.node.tip" visibleIf="!object.view &amp;&amp; object.dataSource.info.supportsReferentialIntegrity()">
                                     <items label="%tree.foreign_key.node.name" path="association" property="associations" icon="#foreign-key">
                                         <items label="%tree.foreign_key_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
                                         </items>
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableIndex" label="%tree.indexes.node.name" icon="#indexes" description="%tree.indexes.node.tip" visibleIf="object.dataSource.info.supportsIndexes()">
+                                <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericTableIndex" label="%tree.indexes.node.name" icon="#indexes" description="%tree.indexes.node.tip" visibleIf="object.dataSource.info.supportsIndexes()">
                                     <items label="%tree.index.node.name" path="index" property="indexes" icon="#index">
                                         <items label="%tree.index_columns.node.name" path="column" property="attributeReferences" icon="#column" navigable="false" inline="true">
                                         </items>
@@ -61,16 +65,16 @@
                                         </items>
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableTrigger" label="%tree.triggers.node.name" icon="#triggers" description="%tree.triggers.node.tip" visibleIf="object.dataSource.metaModel.supportsTriggers(object.dataSource)">
+                                <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericTableTrigger" label="%tree.triggers.node.name" icon="#triggers" description="%tree.triggers.node.tip" visibleIf="object.dataSource.metaModel.supportsTriggers(object.dataSource)">
                                     <items label="%tree.trigger.node.name" path="trigger" property="triggers" icon="#trigger"/>
                                 </folder>
                                 <items label="%tree.sub_table.node.name" optional="true" path="subtable" property="subTables" icon="#table" recursive=".." visibleIf="!object.view">
                                 </items>
                             </items>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericView" label="%tree.tviews.node.name" icon="#folder_view" description="%tree.tviews.node.tip" visibleIf="object.dataSource.metaModel.supportsViews(object.dataSource)">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericView" label="%tree.tviews.node.name" icon="#folder_view" description="%tree.tviews.node.tip" visibleIf="object.dataSource.metaModel.supportsViews(object.dataSource)">
                             <items label="%tree.tview.node.name" path="view" property="views" icon="#view">
-                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableColumn" label="%tree.columns.node.name" icon="#columns" description="View columns">
+                                <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericTableColumn" label="%tree.columns.node.name" icon="#columns" description="View columns">
                                     <items label="%tree.column.node.name" path="attribute" property="attributes" icon="#column">
                                     </items>
                                 </folder>
@@ -82,7 +86,7 @@
                                 </items>
                             </items>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericProcedure" label="%tree.procedures.node.name" icon="#procedures" description="Procedures" visibleIf="object.dataSource.info.supportsStoredCode()">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericProcedure" label="%tree.procedures.node.name" icon="#procedures" description="Procedures" visibleIf="object.dataSource.info.supportsStoredCode()">
                             <items label="%tree.procedures.node.name" itemLabel="%tree.procedure.node.name" path="procedure" property="proceduresOnly" icon="#procedure">
                                 <items label="%tree.procedure_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
                             </items>
@@ -97,16 +101,16 @@
                                 <items label="%tree.function_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
                             </items>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericSequence" label="%tree.sequences.node.name" icon="#sequences" description="%tree.sequences.node.tip" visibleIf="object.dataSource.metaModel.supportsSequences(object.dataSource)">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericSequence" label="%tree.sequences.node.name" icon="#sequences" description="%tree.sequences.node.tip" visibleIf="object.dataSource.metaModel.supportsSequences(object.dataSource)">
                             <items label="%tree.sequence.node.name" path="sequence" property="sequences" icon="#sequence"/>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.generic.model.GenericSynonym" label="%tree.synonyms.node.name" icon="#synonyms" description="Synonyms" visibleIf="object.dataSource.metaModel.supportsSynonyms(object.dataSource)">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericSynonym" label="%tree.synonyms.node.name" icon="#synonyms" description="Synonyms" visibleIf="object.dataSource.metaModel.supportsSynonyms(object.dataSource)">
                             <items label="%tree.synonym.node.name" path="synonym" property="synonyms" icon="#synonym"/>
                         </folder>
-                        <folder id="databaseTrigger" type="org.jkiss.dbeaver.ext.generic.model.GenericContainerTrigger" label="%tree.triggers.node.name" icon="#triggers" description="Global triggers" visibleIf="object.dataSource.metaModel.supportsDatabaseTriggers(object.dataSource)">
+                        <folder id="databaseTrigger" type="org.jkiss.dbeaver.ext.altibase.model.GenericContainerTrigger" label="%tree.triggers.node.name" icon="#triggers" description="Global triggers" visibleIf="object.dataSource.metaModel.supportsDatabaseTriggers(object.dataSource)">
                             <items label="%tree.trigger.node.name" path="trigger" property="triggers" icon="#trigger"/>
                         </folder>
-                        <folder id="tableTrigger" type="org.jkiss.dbeaver.ext.generic.model.GenericTableTrigger" label="%tree.tableTriggers.node.name" icon="#triggers" description="%tree.tableTriggers.node.tip" visibleIf="object.dataSource.metaModel.supportsTriggers(object.dataSource)">
+                        <folder id="tableTrigger" type="org.jkiss.dbeaver.ext.altibase.model.GenericTableTrigger" label="%tree.tableTriggers.node.name" icon="#triggers" description="%tree.tableTriggers.node.tip" visibleIf="object.dataSource.metaModel.supportsTriggers(object.dataSource)">
                             <items label="%tree.trigger.node.name" path="tableTrigger" property="tableTriggers" icon="#trigger"/>
                         </folder>
                         <folder type="org.jkiss.dbeaver.model.struct.DBSDataType" label="%tree.dataTypes.node.name" icon="#data_types" description="%tree.dataTypes.node.tip">
@@ -187,15 +191,14 @@
                         iconBig="icons/altibase_icon_big.png"
                         class="Altibase.jdbc.driver.AltibaseDriver"
                         sampleURL="jdbc:Altibase://{host}:{port}/{database}"
-                        useURL="false"
                         defaultPort="20300"
                         defaultDatabase="mydb"
                         defaultUser="SYS"
                         description="Altibase JDBC Driver"
-                        promoted="1"
                         categories="sql">
+                        <!-- At the moment HTTPS link doesn't work. But we can't keep HTTP anyway. -->
+                    <file type="jar" path="https://ftp.altibase.com/JDBC_Driver/Altibase-7.1.0.jar"/>
                 </driver>
-                
              </drivers>
 
         </datasource>
@@ -204,8 +207,8 @@
     <extension point="org.jkiss.dbeaver.dataTypeProvider">
         <provider
                 class="org.jkiss.dbeaver.ext.altibase.data.GenericValueHandlerProvider"
-                id="org.jkiss.dbeaver.ext.generic.data.GenericValueHandlerProvider"
-                label="Generic data types provider">
+                id="org.jkiss.dbeaver.ext.altibase.data.GenericValueHandlerProvider"
+                label="Altibase data types provider">
             <datasource id="generic"/>
             <!-- Date/time value handler - needed to provide native datetime value formatting. Formatting itself provided in drivers configuration. -->
             <type kind="DATETIME"/>
@@ -213,136 +216,15 @@
     </extension>
 
     <extension point="org.jkiss.dbeaver.objectManager">
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericTableManager"         objectType="org.jkiss.dbeaver.ext.generic.model.GenericTable"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericViewManager"          objectType="org.jkiss.dbeaver.ext.generic.model.GenericView"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericTableColumnManager"   objectType="org.jkiss.dbeaver.ext.generic.model.GenericTableColumn"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericPrimaryKeyManager"    objectType="org.jkiss.dbeaver.ext.generic.model.GenericUniqueKey"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericForeignKeyManager"    objectType="org.jkiss.dbeaver.ext.generic.model.GenericTableForeignKey"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericIndexManager"         objectType="org.jkiss.dbeaver.ext.generic.model.GenericTableIndex"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericProcedureManager"     objectType="org.jkiss.dbeaver.ext.generic.model.GenericProcedure"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericTableManager"         objectType="org.jkiss.dbeaver.ext.altibase.model.GenericTable"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericViewManager"          objectType="org.jkiss.dbeaver.ext.altibase.model.GenericView"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericTableColumnManager"   objectType="org.jkiss.dbeaver.ext.altibase.model.GenericTableColumn"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericPrimaryKeyManager"    objectType="org.jkiss.dbeaver.ext.altibase.model.GenericUniqueKey"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericForeignKeyManager"    objectType="org.jkiss.dbeaver.ext.altibase.model.GenericTableForeignKey"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericIndexManager"         objectType="org.jkiss.dbeaver.ext.altibase.model.GenericTableIndex"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.GenericProcedureManager"     objectType="org.jkiss.dbeaver.ext.altibase.model.GenericProcedure"/>
     </extension>
 
-    <extension point="org.jkiss.dbeaver.generic.meta">
-        <meta id="indexed" class="org.jkiss.dbeaver.ext.generic.model.meta.GenericMetaModel">
-            <object type="catalog">
-                <column id="TABLE_CAT" index="1"/>
-            </object>
-            <object type="schema">
-                <column id="TABLE_SCHEM" index="1"/>
-                <column id="TABLE_CATALOG" index="2"/>
-            </object>
-            <object type="table-type">
-                <column id="TABLE_TYPE" index="1"/>
-            </object>
-            <object type="table">
-                <column id="TABLE_CAT" index="1"/>
-                <column id="TABLE_SCHEM" index="2"/>
-                <column id="TABLE_NAME" index="3"/>
-                <column id="TABLE_TYPE" index="4"/>
-                <column id="REMARKS" index="5"/>
-                <column id="TYPE_CAT" index="6"/>
-                <column id="TYPE_SCHEM" index="7"/>
-                <column id="TYPE_NAME" index="8"/>
-                <column id="SELF_REFERENCING_COL_NAME" index="9"/>
-                <column id="REF_GENERATION" index="10"/>
-            </object>
-            <object type="table-column">
-                <column id="TABLE_CAT" index="1"/>
-                <column id="TABLE_SCHEM" index="2"/>
-                <column id="TABLE_NAME" index="3"/>
-                <column id="COLUMN_NAME" index="4"/>
-                <column id="DATA_TYPE" index="5"/>
-                <column id="TYPE_NAME" index="6"/>
-                <column id="COLUMN_SIZE" index="7"/>
-                <column id="BUFFER_LENGTH" index="8"/>
-                <column id="DECIMAL_DIGITS" index="9"/>
-                <column id="NUM_PREC_RADIX" index="10"/>
-                <column id="NULLABLE" index="11"/>
-                <column id="REMARKS" index="12"/>
-                <column id="COLUMN_DEF" index="13"/>
-                <column id="SQL_DATA_TYPE" index="14"/>
-                <column id="SQL_DATETIME_SUB" index="15"/>
-                <column id="CHAR_OCTET_LENGTH" index="16"/>
-                <column id="ORDINAL_POSITION" index="17"/>
-                <column id="IS_NULLABLE" index="18"/>
-                <column id="SCOPE_CATALOG" index="19"/>
-                <column id="SCOPE_SCHEMA" index="20"/>
-                <column id="SCOPE_TABLE" index="21"/>
-                <column id="SOURCE_DATA_TYPE" index="22"/>
-                <column id="IS_AUTOINCREMENT" index="23"/>
-                <column id="IS_GENERATEDCOLUMN" index="24"/>
-            </object>
-            <object type="primary-key">
-                <column id="TABLE_CAT" index="1"/>
-                <column id="TABLE_SCHEM" index="2"/>
-                <column id="TABLE_NAME" index="3"/>
-                <column id="COLUMN_NAME" index="4"/>
-                <column id="KEY_SEQ" index="5"/>
-                <column id="PK_NAME" index="6"/>
-            </object>
-            <object type="foreign-key">
-                <column id="PKTABLE_CAT" index="1"/>
-                <column id="PKTABLE_SCHEM" index="2"/>
-                <column id="PKTABLE_NAME" index="3"/>
-                <column id="PKCOLUMN_NAME" index="4"/>
-                <column id="FKTABLE_CAT" index="5"/>
-                <column id="FKTABLE_SCHEM" index="6"/>
-                <column id="FKTABLE_NAME" index="7"/>
-                <column id="FKCOLUMN_NAME" index="8"/>
-                <column id="KEY_SEQ" index="9"/>
-                <column id="UPDATE_RULE" index="10"/>
-                <column id="DELETE_RULE" index="11"/>
-                <column id="FK_NAME" index="12"/>
-                <column id="PK_NAME" index="13"/>
-                <column id="DEFERRABILITY" index="14"/>
-            </object>
-            <object type="procedure">
-                <column id="PROCEDURE_CAT" index="1"/>
-                <column id="PROCEDURE_SCHEM" index="2"/>
-                <column id="PROCEDURE_NAME" index="3"/>
-                <column id="REMARKS" index="4"/>
-                <column id="PROCEDURE_TYPE" index="5"/>
-                <column id="SPECIFIC_NAME" index="6"/>
-            </object>
-            <object type="procedure-column">
-                <column id="PROCEDURE_CAT" index="1"/>
-                <column id="PROCEDURE_SCHEM" index="2"/>
-                <column id="PROCEDURE_NAME" index="3"/>
-                <column id="COLUMN_NAME" index="4"/>
-                <column id="COLUMN_TYPE" index="5"/>
-                <column id="DATA_TYPE" index="6"/>
-                <column id="TYPE_NAME" index="7"/>
-                <column id="PRECISION" index="8"/>
-                <column id="LENGTH" index="9"/>
-                <column id="SCALE" index="10"/>
-                <column id="RADIX" index="11"/>
-                <column id="NULLABLE" index="12"/>
-                <column id="REMARKS" index="13"/>
-                <column id="COLUMN_DEF" index="14"/>
-                <column id="SQL_DATA_TYPE" index="15"/>
-                <column id="SQL_DATETIME_SUB" index="16"/>
-                <column id="CHAR_OCTET_LENGTH" index="17"/>
-                <column id="ORDINAL_POSITION" index="18"/>
-                <column id="IS_NULLABLE" index="19"/>
-                <column id="SPECIFIC_NAME" index="20"/>
-            </object>
-            <object type="index">
-                <column id="TABLE_CAT" index="1"/>
-                <column id="TABLE_SCHEM" index="2"/>
-                <column id="TABLE_NAME" index="3"/>
-                <column id="NON_UNIQUE" index="4"/>
-                <column id="INDEX_QUALIFIER" index="5"/>
-                <column id="INDEX_NAME" index="6"/>
-                <column id="TYPE" index="7"/>
-                <column id="ORDINAL_POSITION" index="8"/>
-                <column id="COLUMN_NAME" index="9"/>
-                <column id="ASC_OR_DESC" index="10"/>
-                <column id="CARDINALITY" index="11"/>
-                <column id="PAGES" index="12"/>
-                <column id="FILTER_CONDITION" index="13"/>
-            </object>
-        </meta>
-    </extension>
 
     <extension point="org.jkiss.dbeaver.mavenRepository">
         <repository id="monetdb-maven-repo" name="MonetDB Repository" url="https://clojars.org/repo/" order="20">
@@ -352,15 +234,10 @@
             <scope group="io.crate"/>
         </repository>
 
-<!--
-        <repository id="s3-maven-qubole-releases" name="Qubole Release Repository on S3" url="http://maven-qubole.s3-website-us-east-1.amazonaws.com/maven/release">
-            <scope group="com.qubole"/>
-        </repository>
--->
     </extension>
 
     <extension point="org.jkiss.dbeaver.sqlDialect">
-        <dialect id="generic" parent="basic" class="org.jkiss.dbeaver.ext.altibase.model.GenericSQLDialect" label="Generic" description="Dialect based on JDBC API information." icon="#database_icon_default" hidden="true">
+        <dialect id="altibase" parent="basic" class="org.jkiss.dbeaver.ext.altibase.model.GenericSQLDialect" label="Altibase" description="Altibase SQL dialect." icon="#database_icon_default" hidden="true">
         </dialect>
     </extension>
 

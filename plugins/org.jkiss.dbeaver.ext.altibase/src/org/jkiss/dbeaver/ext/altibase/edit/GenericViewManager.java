@@ -18,7 +18,7 @@ package org.jkiss.dbeaver.ext.altibase.edit;
 
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.GenericConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.model.GenericDataSource;
 import org.jkiss.dbeaver.ext.altibase.model.GenericStructContainer;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTableBase;
@@ -89,7 +89,7 @@ public class GenericViewManager extends SQLObjectEditor<GenericTableBase, Generi
         GenericStructContainer structContainer = (GenericStructContainer) container;
         String tableName = getNewChildName(monitor, structContainer, SQLTableManager.BASE_VIEW_NAME);
         GenericTableBase viewImpl = structContainer.getDataSource().getMetaModel().createTableImpl(structContainer, tableName,
-                GenericConstants.TABLE_TYPE_VIEW,
+                AltibaseConstants.TABLE_TYPE_VIEW,
                 null);
         if (viewImpl instanceof GenericView) {
             ((GenericView) viewImpl).setObjectDefinitionText("CREATE VIEW " + viewImpl.getFullyQualifiedName(DBPEvaluationContext.DDL) + " AS SELECT 1 as A\n");

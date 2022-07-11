@@ -16,4 +16,5 @@ Export-Package: org.jkiss.dbeaver.ext.altibase,
  org.jkiss.dbeaver.ext.altibase.model,
  org.jkiss.dbeaver.ext.altibase.model.meta
 Import-Package: org.slf4j
-Automatic-Module-Name: org.jkiss.dbeaver.ext.generic
+Automatic-Module-Name: org.jkiss.dbeaver.ext.altibase
+Bundle-Activator: org.jkiss.dbeaver.ext.altibase.internal.AltibaseActivator
