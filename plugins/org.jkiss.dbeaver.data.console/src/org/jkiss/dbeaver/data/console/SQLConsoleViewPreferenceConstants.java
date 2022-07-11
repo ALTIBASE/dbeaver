@@ -14,24 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jkiss.dbeaver.ui.controls.lightgrid;
+package org.jkiss.dbeaver.data.console;
 
-/**
- * Child grid row
- * Differs from nested row by having its own element.
- */
-class GridRowChild extends GridRowNested {
 
-    private final Object element;
-
-    public GridRowChild(IGridRow parent, int position, Object element) {
-        super(parent, position);
-        this.element = element;
-    }
-
-    @Override
-    public Object getElement() {
-        return element;
-    }
+public class SQLConsoleViewPreferenceConstants {
+    public final static String SHOW_CONSOLE_VIEW_BY_DEFAULT = "SQLEditor.ConsoleView.showConsoleViewByDefault"; //$NON-NLS-1$
 
 }
