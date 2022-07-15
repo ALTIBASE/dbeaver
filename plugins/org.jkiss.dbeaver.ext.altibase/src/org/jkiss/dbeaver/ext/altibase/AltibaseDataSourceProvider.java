@@ -21,8 +21,9 @@ import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModel;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModelDescriptor;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModelDescriptor;
+import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseDataSource;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
@@ -43,25 +44,25 @@ import java.util.Map;
 
 public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
 
-    private final Map<String, GenericMetaModelDescriptor> metaModels = new HashMap<>();
-    private static final String EXTENSION_ID = "org.jkiss.dbeaver.generic.meta";
+    private final Map<String, AltibaseMetaModelDescriptor> metaModels = new HashMap<>();
+    private static final String EXTENSION_ID = "org.jkiss.dbeaver.altibase.meta";
 
     public AltibaseDataSourceProvider()
     {
-        metaModels.put(AltibaseConstants.META_MODEL_STANDARD, new GenericMetaModelDescriptor());
+        metaModels.put(AltibaseGenericConstants.META_MODEL_STANDARD, new AltibaseMetaModelDescriptor());
 
         List<String> replacedModels = new ArrayList<>();
         IExtensionRegistry extensionRegistry = Platform.getExtensionRegistry();
         IConfigurationElement[] extElements = extensionRegistry.getConfigurationElementsFor(EXTENSION_ID);
         for (IConfigurationElement ext : extElements) {
-            GenericMetaModelDescriptor metaModel = new GenericMetaModelDescriptor(ext);
+            AltibaseMetaModelDescriptor metaModel = new AltibaseMetaModelDescriptor(ext);
             metaModels.put(metaModel.getId(), metaModel);
             replacedModels.addAll(metaModel.getModelReplacements());
         }
         for (String rm : replacedModels) {
             metaModels.remove(rm);
         }
-        for (GenericMetaModelDescriptor metaModel : new ArrayList<>(metaModels.values())) {
+        for (AltibaseMetaModelDescriptor metaModel : new ArrayList<>(metaModels.values())) {
             for (String driverClass : ArrayUtils.safeArray(metaModel.getDriverClass())) {
                 metaModels.put(driverClass, metaModel);
             }
@@ -87,9 +88,10 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
         @NotNull DBPDataSourceContainer container)
         throws DBException
     {
-        GenericMetaModelDescriptor metaModel = null;
-        Object metaModelId = container.getDriver().getDriverParameter(AltibaseConstants.PARAM_META_MODEL);
-        if (metaModelId != null && !AltibaseConstants.META_MODEL_STANDARD.equals(metaModelId)) {
+    	///* TODO: Temp. test
+        AltibaseMetaModelDescriptor metaModel = null;
+        Object metaModelId = container.getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_META_MODEL);
+        if (metaModelId != null && !AltibaseGenericConstants.META_MODEL_STANDARD.equals(metaModelId)) {
             metaModel = metaModels.get(metaModelId.toString());
             if (metaModel == null) {
                 log.warn("Meta model '" + metaModelId + "' not recognized. Default one will be used");
@@ -102,12 +104,14 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
         if (metaModel == null) {
             metaModel = getStandardMetaModel();
         }
-        GenericMetaModel metaModelInstance = metaModel.getInstance();
+        AltibaseMetaModel metaModelInstance = metaModel.getInstance();
         return metaModelInstance.createDataSourceImpl(monitor, container);
+        //*/
+    	//return new AltibaseDataSource(monitor, container);
     }
 
-    protected GenericMetaModelDescriptor getStandardMetaModel() {
-        return metaModels.get(AltibaseConstants.META_MODEL_STANDARD);
+    protected AltibaseMetaModelDescriptor getStandardMetaModel() {
+        return metaModels.get(AltibaseGenericConstants.META_MODEL_STANDARD);
     }
 
     @Override
@@ -115,7 +119,7 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
         DBPPropertyDescriptor[] connectionProperties = super.getConnectionProperties(monitor, driver, connectionInfo);
         if (connectionProperties == null || connectionProperties.length == 0) {
             // Try to get list of supported properties from custom driver config
-            String driverParametersString = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_DRIVER_PROPERTIES));
+            String driverParametersString = CommonUtils.toString(driver.getDriverParameter(AltibaseGenericConstants.PARAM_DRIVER_PROPERTIES));
             if (!driverParametersString.isEmpty()) {
                 String[] propList = driverParametersString.split(",");
                 connectionProperties = new DBPPropertyDescriptor[propList.length];

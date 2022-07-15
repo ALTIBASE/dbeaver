@@ -21,7 +21,7 @@ import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.altibase.model.GenericObjectContainer;
 import org.jkiss.dbeaver.ext.altibase.model.GenericProcedure;
 import org.jkiss.dbeaver.ext.altibase.model.GenericStructContainer;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModel;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
@@ -74,7 +74,7 @@ public class GenericProcedureManager extends SQLObjectEditor<GenericProcedure, G
     {
         GenericProcedure object = command.getObject();
         String procedureName;
-        GenericMetaModel metaModel = object.getDataSource().getMetaModel();
+        AltibaseMetaModel metaModel = object.getDataSource().getMetaModel();
         if (metaModel.supportsOverloadedProcedureNames()) {
             try {
                 procedureName = object.getProcedureSignature(monitor, metaModel.showProcedureParamNames());

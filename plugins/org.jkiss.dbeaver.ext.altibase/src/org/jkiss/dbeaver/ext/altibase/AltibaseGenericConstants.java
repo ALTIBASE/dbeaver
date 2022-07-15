@@ -20,7 +20,7 @@ package org.jkiss.dbeaver.ext.altibase;
 /**
  * Generic provider constants
  */
-public class AltibaseConstants {
+public class AltibaseGenericConstants {
 
     public static final String PARAM_META_MODEL = "meta-model";
     public static final String PARAM_QUERY_PING = "ping-sql";

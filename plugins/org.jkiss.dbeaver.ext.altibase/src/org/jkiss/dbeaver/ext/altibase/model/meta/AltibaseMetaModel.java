@@ -20,10 +20,11 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.*;
 import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.exec.DBCFeatureNotSupportedException;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
@@ -50,10 +51,11 @@ import java.util.*;
 
 /**
  * Generic meta model
+ * -> Altibase meta model
  */
-public class GenericMetaModel {
+public class AltibaseMetaModel {
 
-    private static final Log log = Log.getLog(GenericMetaModel.class);
+    private static final Log log = Log.getLog(AltibaseMetaModel.class);
     private static final String DEFAULT_NULL_SCHEMA_NAME = "DEFAULT";
 
     // Tables types which are not actually a table
@@ -62,20 +64,13 @@ public class GenericMetaModel {
     private static final Set<String> INVALID_TABLE_TYPES = new HashSet<>();
 
     static {
-        // [JDBC: PostgreSQL]
-        INVALID_TABLE_TYPES.add("INDEX");
-        INVALID_TABLE_TYPES.add("SEQUENCE");
-        INVALID_TABLE_TYPES.add("TYPE");
-        INVALID_TABLE_TYPES.add("SYSTEM INDEX");
-        INVALID_TABLE_TYPES.add("SYSTEM SEQUENCE");
-        // [JDBC: SQLite]
-        INVALID_TABLE_TYPES.add("TRIGGER");
+    	INVALID_TABLE_TYPES.add("SEQUENCE");
     }
 
 
-    GenericMetaModelDescriptor descriptor;
+    AltibaseMetaModelDescriptor descriptor;
 
-    public GenericMetaModel()
+    public AltibaseMetaModel()
     {
     }
 
@@ -142,7 +137,7 @@ public class GenericMetaModel {
         }
 
         try {
-            final GenericMetaObject schemaObject = getMetaObject(AltibaseConstants.OBJECT_SCHEMA);
+            final GenericMetaObject schemaObject = getMetaObject(AltibaseGenericConstants.OBJECT_SCHEMA);
             final DBSObjectFilter schemaFilters = dataSource.getContainer().getObjectFilter(GenericSchema.class, catalog, false);
 
             final List<GenericSchema> tmpSchemas = new ArrayList<>();
@@ -318,7 +313,7 @@ public class GenericMetaModel {
         Map<String, GenericProcedure> funcMap = new LinkedHashMap<>();
 
         GenericDataSource dataSource = container.getDataSource();
-        GenericMetaObject procObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
+        GenericMetaObject procObject = dataSource.getMetaObject(AltibaseGenericConstants.OBJECT_PROCEDURE);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load procedures")) {
             boolean supportsFunctions = false;
             if (hasFunctionSupport()) {
@@ -664,7 +659,7 @@ public class GenericMetaModel {
     }
 
     public boolean isView(String tableType) {
-        return tableType.toUpperCase(Locale.ENGLISH).contains(AltibaseConstants.TABLE_TYPE_VIEW);
+        return tableType.toUpperCase(Locale.ENGLISH).contains(AltibaseGenericConstants.TABLE_TYPE_VIEW);
     }
 
     //////////////////////////////////////////////////////
@@ -796,11 +791,14 @@ public class GenericMetaModel {
     // Sequences
 
     public boolean supportsSequences(@NotNull GenericDataSource dataSource) {
-        return false;
+        return true;
     }
 
     public JDBCStatement prepareSequencesLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
-        throw new SQLFeatureNotSupportedException();
+        final JDBCPreparedStatement dbStat = session.prepareStatement(
+                "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_TYPE = 'SEQUENCE'");
+        dbStat.setString(1, container.getName());
+        return dbStat;
     }
 
     public GenericSequence createSequenceImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {

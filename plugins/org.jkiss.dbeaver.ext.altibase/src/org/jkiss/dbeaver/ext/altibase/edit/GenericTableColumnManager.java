@@ -19,12 +19,12 @@ package org.jkiss.dbeaver.ext.altibase.edit;
 
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTable;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTableBase;
 import org.jkiss.dbeaver.ext.altibase.model.GenericTableColumn;
 import org.jkiss.dbeaver.ext.altibase.model.GenericUtils;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModel;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPDataKind;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
@@ -118,7 +118,7 @@ public class GenericTableColumnManager extends SQLTableColumnManager<GenericTabl
     @Override
     protected ColumnModifier[] getSupportedModifiers(GenericTableColumn column, Map<String, Object> options) {
         // According to SQL92 DEFAULT comes before constraints
-        GenericMetaModel metaModel = column.getDataSource().getMetaModel();
+        AltibaseMetaModel metaModel = column.getDataSource().getMetaModel();
         if (!metaModel.supportsNotNullColumnModifiers(column)) {
             return new ColumnModifier[]{
                 DataTypeModifier,
@@ -136,13 +136,13 @@ public class GenericTableColumnManager extends SQLTableColumnManager<GenericTabl
     @Override
     protected long getDDLFeatures(GenericTableColumn object) {
         long features = 0;
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
             features |= DDL_FEATURE_OMIT_COLUMN_CLAUSE_IN_DROP;
         }
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
             features |= DDL_FEATURE_USER_BRACKETS_IN_DROP;
         }
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
             features |= FEATURE_ALTER_TABLE_ADD_COLUMN;
         }
         return features;

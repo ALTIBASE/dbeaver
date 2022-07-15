@@ -31,11 +31,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class GenericMetaModelDescriptor extends AbstractDescriptor {
+public class AltibaseMetaModelDescriptor extends AbstractDescriptor {
 
     private IConfigurationElement contributorConfig;
     private ObjectType implType;
-    private GenericMetaModel instance;
+    private AltibaseMetaModel instance;
 
     private String id;
     private final Map<String, GenericMetaObject> objects = new HashMap<>();
@@ -43,15 +43,15 @@ public class GenericMetaModelDescriptor extends AbstractDescriptor {
     private final String dialectId;
     private List<String> modelReplacements;
 
-    public GenericMetaModelDescriptor() {
+    public AltibaseMetaModelDescriptor() {
         super("org.jkiss.dbeaver.ext.generic");
-        implType = new ObjectType(GenericMetaModel.class.getName());
-        instance = new GenericMetaModel();
+        implType = new ObjectType(AltibaseMetaModel.class.getName());
+        instance = new AltibaseMetaModel();
         instance.descriptor = this;
         dialectId = GenericSQLDialect.GENERIC_DIALECT_ID;
     }
 
-    public GenericMetaModelDescriptor(IConfigurationElement cfg) {
+    public AltibaseMetaModelDescriptor(IConfigurationElement cfg) {
         super(cfg);
         this.contributorConfig = cfg;
 
@@ -110,13 +110,13 @@ public class GenericMetaModelDescriptor extends AbstractDescriptor {
         this.modelReplacements = modelReplacements;
     }
 
-    public GenericMetaModel getInstance() throws DBException {
+    public AltibaseMetaModel getInstance() throws DBException {
         if (instance != null) {
             return instance;
         }
-        Class<? extends GenericMetaModel> implClass = implType.getObjectClass(GenericMetaModel.class);
+        Class<? extends AltibaseMetaModel> implClass = implType.getObjectClass(AltibaseMetaModel.class);
         if (implClass == null) {
-            throw new DBException("Can't create generic meta model instance '" + implType.getImplName() + "'");
+            throw new DBException("Can't create altibase meta model instance '" + implType.getImplName() + "'");
         }
         try {
             instance = implClass.getDeclaredConstructor().newInstance();

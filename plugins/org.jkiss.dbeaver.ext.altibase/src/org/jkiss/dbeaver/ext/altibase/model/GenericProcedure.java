@@ -18,7 +18,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBPUniqueObject;
@@ -116,7 +116,7 @@ public class GenericProcedure extends AbstractProcedure<GenericDataSource, Gener
         Iterator<? extends GenericProcedure> procIter = procedures.iterator();
         GenericProcedure procedure = null;
 
-        final GenericMetaObject pcObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_PROCEDURE_COLUMN);
+        final GenericMetaObject pcObject = getDataSource().getMetaObject(AltibaseGenericConstants.OBJECT_PROCEDURE_COLUMN);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, this, "Load procedure columns")) {
             final JDBCResultSet dbResult;
             if (DBSProcedureType.PROCEDURE == procedureType) {

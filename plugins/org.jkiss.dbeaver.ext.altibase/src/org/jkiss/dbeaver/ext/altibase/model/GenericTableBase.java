@@ -20,8 +20,8 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModel;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
 import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.exec.DBCSession;
@@ -79,7 +79,7 @@ public abstract class GenericTableBase extends JDBCTable<GenericDataSource, Gene
             this.description = GenericUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.REMARKS);
         }
 
-        final GenericMetaModel metaModel = container.getDataSource().getMetaModel();
+        final AltibaseMetaModel metaModel = container.getDataSource().getMetaModel();
         this.isSystem = metaModel.isSystemTable(this);
 
         boolean mergeEntities = container.getDataSource().isMergeEntities();
@@ -100,7 +100,7 @@ public abstract class GenericTableBase extends JDBCTable<GenericDataSource, Gene
     @Override
     protected boolean isTruncateSupported() {
         return CommonUtils.getBoolean(
-            getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_TRUNCATE),
+            getDataSource().getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_TRUNCATE),
             false);
     }
 
@@ -294,7 +294,7 @@ public abstract class GenericTableBase extends JDBCTable<GenericDataSource, Gene
             // Do not count rows for views
             return null;
         }
-        if (Boolean.FALSE.equals(getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_SELECT_COUNT))) {
+        if (Boolean.FALSE.equals(getDataSource().getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_SELECT_COUNT))) {
             // Select count not supported
             return null;
         }
@@ -355,7 +355,7 @@ public abstract class GenericTableBase extends JDBCTable<GenericDataSource, Gene
             // Read foreign keys in two passes
             // First read entire resultset to prevent recursive metadata requests
             // some drivers don't like it
-            final GenericMetaObject fkObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_FOREIGN_KEY);
+            final GenericMetaObject fkObject = getDataSource().getMetaObject(AltibaseGenericConstants.OBJECT_FOREIGN_KEY);
             final List<ForeignKeyInfo> fkInfos = loadReferenceInfoList(session, fkObject);
 
             List<GenericTableForeignKey> fkList = new ArrayList<>();

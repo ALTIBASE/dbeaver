@@ -17,7 +17,7 @@
 package org.jkiss.dbeaver.ext.altibase.edit;
 
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.*;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
 import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLConstraintManager;
@@ -65,7 +65,7 @@ public class GenericPrimaryKeyManager extends SQLConstraintManager<GenericUnique
         GenericTableBase tableBase = (GenericTableBase)container;
         return tableBase.getDataSource().getMetaModel().createConstraintImpl(
             tableBase,
-            AltibaseConstants.BASE_CONSTRAINT_NAME,
+            AltibaseGenericConstants.BASE_CONSTRAINT_NAME,
             DBSEntityConstraintType.PRIMARY_KEY,
             null,
             false);

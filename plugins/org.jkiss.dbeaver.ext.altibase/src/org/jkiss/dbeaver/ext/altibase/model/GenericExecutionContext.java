@@ -20,7 +20,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.connection.DBPConnectionBootstrap;
 import org.jkiss.dbeaver.model.exec.DBCException;
@@ -75,7 +75,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
                     try {
                         selectedEntityName = session.getCatalog();
                         if (dataSource.getSelectedEntityType() == null && !CommonUtils.isEmpty(selectedEntityName)) {
-                            dataSource.setSelectedEntityType(AltibaseConstants.ENTITY_TYPE_CATALOG);
+                            dataSource.setSelectedEntityType(AltibaseGenericConstants.ENTITY_TYPE_CATALOG);
                             dataSource.setSelectedEntityFromAPI(true);
                         }
                     } catch (Throwable e) {
@@ -88,7 +88,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
                     try {
                         selectedEntityName = session.getSchema();
                         if (dataSource.getSelectedEntityType() == null && !CommonUtils.isEmpty(selectedEntityName)) {
-                            dataSource.setSelectedEntityType(AltibaseConstants.ENTITY_TYPE_SCHEMA);
+                            dataSource.setSelectedEntityType(AltibaseGenericConstants.ENTITY_TYPE_SCHEMA);
                             dataSource.setSelectedEntityFromAPI(true);
                         }
                     } catch (Throwable e) {
@@ -120,10 +120,10 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
         if (CommonUtils.isEmpty(selectedEntityName)) {
             // If we have only one catalog then it is our selected entity
             if (dataSource.hasCatalogs() && dataSource.getCatalogs().size() == 1) {
-                dataSource.setSelectedEntityType(AltibaseConstants.ENTITY_TYPE_CATALOG);
+                dataSource.setSelectedEntityType(AltibaseGenericConstants.ENTITY_TYPE_CATALOG);
                 selectedEntityName = dataSource.getCatalogs().get(0).getName();
             } else if (dataSource.hasSchemas() && dataSource.getSchemas().size() == 1) {
-                dataSource.setSelectedEntityType(AltibaseConstants.ENTITY_TYPE_SCHEMA);
+                dataSource.setSelectedEntityType(AltibaseGenericConstants.ENTITY_TYPE_SCHEMA);
                 selectedEntityName = dataSource.getSchemas().get(0).getName();
             }
         }
@@ -191,7 +191,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
         if (!CommonUtils.isEmpty(selectedEntityName)) {
             GenericDataSource dataSource = getDataSource();
             if (dataSource.hasCatalogs()) {
-                if (dataSource.getSelectedEntityType() == null || dataSource.getSelectedEntityType().equals(AltibaseConstants.ENTITY_TYPE_CATALOG) || !dataSource.hasSchemas()) {
+                if (dataSource.getSelectedEntityType() == null || dataSource.getSelectedEntityType().equals(AltibaseGenericConstants.ENTITY_TYPE_CATALOG) || !dataSource.hasSchemas()) {
                     return getDataSource().getCatalog(selectedEntityName);
                 }
             }
@@ -204,7 +204,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
         if (!CommonUtils.isEmpty(selectedEntityName)) {
             GenericDataSource dataSource = getDataSource();
             if (!dataSource.hasCatalogs() && dataSource.hasSchemas()) {
-                if (dataSource.getSelectedEntityType() == null || dataSource.getSelectedEntityType().equals(AltibaseConstants.ENTITY_TYPE_SCHEMA) || !dataSource.hasCatalogs()) {
+                if (dataSource.getSelectedEntityType() == null || dataSource.getSelectedEntityType().equals(AltibaseGenericConstants.ENTITY_TYPE_SCHEMA) || !dataSource.hasCatalogs()) {
                     return dataSource.getSchema(selectedEntityName);
                 }
             }
@@ -224,7 +224,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
                 return dataSource.hasCatalogs() && info.supportsCatalogSelection();
             }
             if (dataSource.hasCatalogs()) {
-                return (AltibaseConstants.ENTITY_TYPE_CATALOG.equals(dataSource.getSelectedEntityType()) || !dataSource.hasSchemas()) && info.supportsCatalogSelection();
+                return (AltibaseGenericConstants.ENTITY_TYPE_CATALOG.equals(dataSource.getSelectedEntityType()) || !dataSource.hasSchemas()) && info.supportsCatalogSelection();
             }
         }
         return false;
@@ -242,7 +242,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
                 return !dataSource.hasCatalogs() && dataSource.hasSchemas() && info.supportsSchemaSelection();
             }
             if (dataSource.hasSchemas()) {
-                return (AltibaseConstants.ENTITY_TYPE_SCHEMA.equals(dataSource.getSelectedEntityType()) || !dataSource.hasCatalogs()) && info.supportsSchemaSelection();
+                return (AltibaseGenericConstants.ENTITY_TYPE_SCHEMA.equals(dataSource.getSelectedEntityType()) || !dataSource.hasCatalogs()) && info.supportsSchemaSelection();
             }
         }
         return false;
@@ -291,7 +291,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
             }
         }
         selectedEntityName = catalog.getName();
-        dataSource.setSelectedEntityType(AltibaseConstants.ENTITY_TYPE_CATALOG);
+        dataSource.setSelectedEntityType(AltibaseGenericConstants.ENTITY_TYPE_CATALOG);
 
         if (oldSelectedCatalog != null) {
             DBUtils.fireObjectSelect(oldSelectedCatalog, false);
@@ -334,7 +334,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
             throw new DBCException(e, this);
         }
         selectedEntityName = schemaName;
-        dataSource.setSelectedEntityType(AltibaseConstants.ENTITY_TYPE_SCHEMA);
+        dataSource.setSelectedEntityType(AltibaseGenericConstants.ENTITY_TYPE_SCHEMA);
     }
 
     @Override
@@ -371,7 +371,7 @@ public class GenericExecutionContext extends JDBCExecutionContext implements DBC
         if (!CommonUtils.isEmpty(selectedEntityName)) {
             GenericDataSource dataSource = getDataSource();
             if (dataSource.hasCatalogs()) {
-                if (dataSource.getSelectedEntityType() == null || dataSource.getSelectedEntityType().equals(AltibaseConstants.ENTITY_TYPE_CATALOG)) {
+                if (dataSource.getSelectedEntityType() == null || dataSource.getSelectedEntityType().equals(AltibaseGenericConstants.ENTITY_TYPE_CATALOG)) {
                     return dataSource.getCatalog(selectedEntityName);
                 }
             } else if (dataSource.hasSchemas()) {

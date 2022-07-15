@@ -18,7 +18,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
 import org.jkiss.dbeaver.model.DBPIdentifierCase;
 import org.jkiss.dbeaver.model.DBUtils;
@@ -100,7 +100,7 @@ public class GenericStructureAssistant extends JDBCStructureAssistant<GenericExe
     private void findTablesByMask(JDBCSession session, GenericCatalog catalog, GenericSchema schema, String tableNameMask, int maxResults, List<DBSObjectReference> objects)
         throws SQLException, DBException
     {
-        final GenericMetaObject tableObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_TABLE);
+        final GenericMetaObject tableObject = getDataSource().getMetaObject(AltibaseGenericConstants.OBJECT_TABLE);
         final DBRProgressMonitor monitor = session.getProgressMonitor();
         try (JDBCResultSet dbResult = session.getMetaData().getTables(
             catalog == null ? null : catalog.getName(),
@@ -131,7 +131,7 @@ public class GenericStructureAssistant extends JDBCStructureAssistant<GenericExe
     private void findProceduresByMask(JDBCSession session, GenericCatalog catalog, GenericSchema schema, String procNameMask, int maxResults, List<DBSObjectReference> objects)
         throws SQLException, DBException
     {
-        final GenericMetaObject procObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
+        final GenericMetaObject procObject = getDataSource().getMetaObject(AltibaseGenericConstants.OBJECT_PROCEDURE);
         DBRProgressMonitor monitor = session.getProgressMonitor();
         try (JDBCResultSet dbResult = session.getMetaData().getProcedures(
             catalog == null ? null : catalog.getName(),

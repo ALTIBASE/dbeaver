@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
@@ -49,9 +49,9 @@ class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTable
         super(
             tableCache,
             GenericTableBase.class,
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_INDEX, JDBCConstants.TABLE_NAME),
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_INDEX, JDBCConstants.INDEX_NAME));
-        indexObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_INDEX);
+            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseGenericConstants.OBJECT_INDEX, JDBCConstants.TABLE_NAME),
+            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseGenericConstants.OBJECT_INDEX, JDBCConstants.INDEX_NAME));
+        indexObject = tableCache.getDataSource().getMetaObject(AltibaseGenericConstants.OBJECT_INDEX);
     }
 
     @NotNull

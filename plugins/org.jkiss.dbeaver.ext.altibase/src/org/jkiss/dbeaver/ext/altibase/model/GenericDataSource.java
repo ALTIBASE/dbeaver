@@ -22,8 +22,8 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.ModelPreferences;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModel;
+import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
 import org.jkiss.dbeaver.model.*;
 import org.jkiss.dbeaver.model.connection.DBPConnectionConfiguration;
@@ -66,7 +66,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
     private final JDBCBasicDataTypeCache<GenericStructContainer, ? extends JDBCDataType> dataTypeCache;
     private List<GenericCatalog> catalogs;
     private SimpleObjectCache<GenericStructContainer, GenericSchema> schemas;
-    private final GenericMetaModel metaModel;
+    private final AltibaseMetaModel metaModel;
     private GenericObjectContainer structureContainer;
     boolean catalogsFiltered;
 
@@ -80,21 +80,21 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
     private DBCQueryPlanner queryPlanner;
     private Format nativeFormatTimestamp, nativeFormatTime, nativeFormatDate;
 
-    public GenericDataSource(@NotNull DBRProgressMonitor monitor, @NotNull DBPDataSourceContainer container, @NotNull GenericMetaModel metaModel, @NotNull SQLDialect dialect)
+    public GenericDataSource(@NotNull DBRProgressMonitor monitor, @NotNull DBPDataSourceContainer container, @NotNull AltibaseMetaModel metaModel, @NotNull SQLDialect dialect)
         throws DBException {
         super(monitor, container, dialect, false);
         this.metaModel = metaModel;
         final DBPDriver driver = container.getDriver();
         this.dataTypeCache = metaModel.createDataTypeCache(this);
         this.tableTypeCache = new TableTypeCache();
-        this.queryGetActiveDB = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_QUERY_GET_ACTIVE_DB));
-        this.querySetActiveDB = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_QUERY_SET_ACTIVE_DB));
-        this.selectedEntityType = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_ACTIVE_ENTITY_TYPE));
-        this.omitSingleCatalog = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_OMIT_SINGLE_CATALOG), false);
+        this.queryGetActiveDB = CommonUtils.toString(driver.getDriverParameter(AltibaseGenericConstants.PARAM_QUERY_GET_ACTIVE_DB));
+        this.querySetActiveDB = CommonUtils.toString(driver.getDriverParameter(AltibaseGenericConstants.PARAM_QUERY_SET_ACTIVE_DB));
+        this.selectedEntityType = CommonUtils.toString(driver.getDriverParameter(AltibaseGenericConstants.PARAM_ACTIVE_ENTITY_TYPE));
+        this.omitSingleCatalog = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseGenericConstants.PARAM_OMIT_SINGLE_CATALOG), false);
         if (CommonUtils.isEmpty(this.selectedEntityType)) {
             this.selectedEntityType = null;
         }
-        this.allObjectsPattern = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_ALL_OBJECTS_PATTERN));
+        this.allObjectsPattern = CommonUtils.toString(driver.getDriverParameter(AltibaseGenericConstants.PARAM_ALL_OBJECTS_PATTERN));
         if (CommonUtils.isEmpty(this.allObjectsPattern)) {
             this.allObjectsPattern = "%";
         } else if ("null".equalsIgnoreCase(this.allObjectsPattern)) {
@@ -102,16 +102,16 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
         }
 
         // Init native formats
-        nativeFormatTimestamp = makeNativeFormat(AltibaseConstants.PARAM_NATIVE_FORMAT_TIMESTAMP);
-        nativeFormatTime = makeNativeFormat(AltibaseConstants.PARAM_NATIVE_FORMAT_TIME);
-        nativeFormatDate = makeNativeFormat(AltibaseConstants.PARAM_NATIVE_FORMAT_DATE);
+        nativeFormatTimestamp = makeNativeFormat(AltibaseGenericConstants.PARAM_NATIVE_FORMAT_TIMESTAMP);
+        nativeFormatTime = makeNativeFormat(AltibaseGenericConstants.PARAM_NATIVE_FORMAT_TIME);
+        nativeFormatDate = makeNativeFormat(AltibaseGenericConstants.PARAM_NATIVE_FORMAT_DATE);
 
         initializeRemoteInstance(monitor);
     }
 
     // Constructor for tests
     @ForTest
-    public GenericDataSource(@NotNull DBRProgressMonitor monitor, @NotNull GenericMetaModel metaModel, @NotNull DBPDataSourceContainer container, @NotNull SQLDialect dialect)
+    public GenericDataSource(@NotNull DBRProgressMonitor monitor, @NotNull AltibaseMetaModel metaModel, @NotNull DBPDataSourceContainer container, @NotNull SQLDialect dialect)
             throws DBException {
         super(monitor, container, dialect, false);
         this.metaModel = metaModel;
@@ -209,7 +209,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
     }
 
     @NotNull
-    public GenericMetaModel getMetaModel() {
+    public AltibaseMetaModel getMetaModel() {
         return metaModel;
     }
 
@@ -223,40 +223,40 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
         final GenericDataSourceInfo info = new GenericDataSourceInfo(getContainer().getDriver(), metaData);
         final JDBCSQLDialect dialect = (JDBCSQLDialect) getSQLDialect();
 
-        final Object supportsReferences = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_REFERENCES);
+        final Object supportsReferences = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_REFERENCES);
         if (supportsReferences != null) {
             info.setSupportsReferences(CommonUtils.toBoolean(supportsReferences));
         }
 
-        final Object supportsIndexes = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_INDEXES);
+        final Object supportsIndexes = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_INDEXES);
         if (supportsIndexes != null) {
             info.setSupportsIndexes(CommonUtils.toBoolean(supportsIndexes));
         }
 
-        final Object supportsViews = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_VIEWS);
+        final Object supportsViews = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_VIEWS);
         if (supportsViews != null) {
             info.setSupportsViews(CommonUtils.toBoolean(supportsViews));
         }
 
-        final Object supportsStoredCode = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_STORED_CODE);
+        final Object supportsStoredCode = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_STORED_CODE);
         if (supportsStoredCode != null) {
             info.setSupportsStoredCode(CommonUtils.toBoolean(supportsStoredCode));
         }
 
-        final Object supportsSubqueries = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_SUBQUERIES);
+        final Object supportsSubqueries = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_SUBQUERIES);
         if (supportsSubqueries != null) {
             dialect.setSupportsSubqueries(CommonUtils.toBoolean(supportsSubqueries));
         }
 
-        final Object supportsStructCacheParam = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_STRUCT_CACHE);
+        final Object supportsStructCacheParam = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_STRUCT_CACHE);
         if (supportsStructCacheParam != null) {
             this.supportsStructCache = CommonUtils.toBoolean(supportsStructCacheParam);
         }
-        final Object supportsCatalogSelection = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_CATALOG_SELECTION);
+        final Object supportsCatalogSelection = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_CATALOG_SELECTION);
         if (supportsCatalogSelection != null) {
             info.supportsCatalogSelection = CommonUtils.toBoolean(supportsCatalogSelection);
         }
-        final Object supportSchemaSelection = getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_SCHEMA_SELECTION);
+        final Object supportSchemaSelection = getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SUPPORTS_SCHEMA_SELECTION);
         if (supportSchemaSelection != null) {
             info.supportsSchemaSelection = CommonUtils.toBoolean(supportSchemaSelection);
         }
@@ -265,7 +265,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
 
     @Override
     public void shutdown(DBRProgressMonitor monitor) {
-        String queryShutdown = CommonUtils.toString(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_QUERY_SHUTDOWN));
+        String queryShutdown = CommonUtils.toString(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_QUERY_SHUTDOWN));
         if (!CommonUtils.isEmpty(queryShutdown)) {
             for (JDBCRemoteInstance instance : getAvailableInstances()) {
                 for (JDBCExecutionContext context : instance.getAllContexts()) {
@@ -279,7 +279,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
         }
 
         super.shutdown(monitor);
-        String paramShutdown = CommonUtils.toString(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SHUTDOWN_URL_PARAM));
+        String paramShutdown = CommonUtils.toString(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SHUTDOWN_URL_PARAM));
         if (!CommonUtils.isEmpty(paramShutdown)) {
             monitor.subTask("Shutdown embedded database");
             try {
@@ -487,7 +487,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
     public void initialize(@NotNull DBRProgressMonitor monitor) throws DBException {
         super.initialize(monitor);
         boolean omitCatalog = isOmitCatalog();
-        boolean omitTypeCache = CommonUtils.toBoolean(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_OMIT_TYPE_CACHE));
+        boolean omitTypeCache = CommonUtils.toBoolean(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_OMIT_TYPE_CACHE));
         if (!omitTypeCache) {
             // Cache data types
             try {
@@ -507,7 +507,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
                 // Read catalogs
                 monitor.subTask("Extract catalogs");
                 monitor.worked(1);
-                final GenericMetaObject catalogObject = getMetaObject(AltibaseConstants.OBJECT_CATALOG);
+                final GenericMetaObject catalogObject = getMetaObject(AltibaseGenericConstants.OBJECT_CATALOG);
                 final DBSObjectFilter catalogFilters = getContainer().getObjectFilter(GenericCatalog.class, null, false);
                 final List<String> catalogNames = getCatalogsNames(monitor, metaData, catalogObject, catalogFilters);
                 if (!catalogNames.isEmpty() || catalogsFiltered) {
@@ -600,19 +600,19 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
     }
 
     public boolean isOmitCatalog() {
-        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_OMIT_CATALOG), false);
+        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_OMIT_CATALOG), false);
     }
 
     public boolean isOmitSchema() {
-        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_OMIT_SCHEMA), false);
+        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_OMIT_SCHEMA), false);
     }
 
     public boolean isOmitSingleSchema() {
-        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_OMIT_SINGLE_SCHEMA), false);
+        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_OMIT_SINGLE_SCHEMA), false);
     }
 
     public boolean isSchemaFiltersEnabled() {
-        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SCHEMA_FILTER_ENABLED), true);
+        return CommonUtils.getBoolean(getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SCHEMA_FILTER_ENABLED), true);
     }
 
     @Override
@@ -787,11 +787,11 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
     @Override
     public String getObjectTypeTerm(String path, String objectType, boolean multiple) {
         String term = null;
-        if (AltibaseConstants.TERM_CATALOG.equals(objectType)) {
+        if (AltibaseGenericConstants.TERM_CATALOG.equals(objectType)) {
             term = getInfo().getCatalogTerm();
-        } else if (AltibaseConstants.TERM_SCHEMA.equals(objectType)) {
+        } else if (AltibaseGenericConstants.TERM_SCHEMA.equals(objectType)) {
             term = getInfo().getSchemaTerm();
-        } else if (AltibaseConstants.TERM_PROCEDURE.equals(objectType)) {
+        } else if (AltibaseGenericConstants.TERM_PROCEDURE.equals(objectType)) {
             term = getInfo().getProcedureTerm();
         }
         if (term != null && multiple) {
@@ -841,7 +841,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
 
     public boolean splitProceduresAndFunctions() {
         return CommonUtils.getBoolean(
-            getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SPLIT_PROCEDURES_AND_FUNCTIONS),
+            getContainer().getDriver().getDriverParameter(AltibaseGenericConstants.PARAM_SPLIT_PROCEDURES_AND_FUNCTIONS),
             false);
     }
 
@@ -903,7 +903,7 @@ public class GenericDataSource extends JDBCDataSource implements DBPTermProvider
             return new GenericTableType(
                 GenericDataSource.this,
                 GenericUtils.safeGetString(
-                    getMetaObject(AltibaseConstants.OBJECT_TABLE_TYPE),
+                    getMetaObject(AltibaseGenericConstants.OBJECT_TABLE_TYPE),
                     resultSet,
                     JDBCConstants.TABLE_TYPE));
         }
