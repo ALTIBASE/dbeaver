@@ -147,7 +147,7 @@ public class GenericUtils {
 
     public static boolean isLegacySQLDialect(DBSObject owner) {
         SQLDialect dialect = SQLUtils.getDialectFromObject(owner);
-        return dialect instanceof GenericSQLDialect && ((GenericSQLDialect)dialect).isLegacySQLDialect();
+        return dialect instanceof AltibaseSQLDialect && ((AltibaseSQLDialect)dialect).isLegacySQLDialect();
     }
 
     public static String normalizeProcedureName(String procedureName) {

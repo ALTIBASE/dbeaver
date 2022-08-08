@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model.meta;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.model.GenericSQLDialect;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseSQLDialect;
 import org.jkiss.dbeaver.model.impl.AbstractDescriptor;
 import org.jkiss.dbeaver.model.sql.SQLDialectMetadata;
 import org.jkiss.dbeaver.model.sql.registry.SQLDialectRegistry;
@@ -44,11 +44,11 @@ public class AltibaseMetaModelDescriptor extends AbstractDescriptor {
     private List<String> modelReplacements;
 
     public AltibaseMetaModelDescriptor() {
-        super("org.jkiss.dbeaver.ext.generic");
+        super("org.jkiss.dbeaver.ext.altibase");
         implType = new ObjectType(AltibaseMetaModel.class.getName());
         instance = new AltibaseMetaModel();
         instance.descriptor = this;
-        dialectId = GenericSQLDialect.GENERIC_DIALECT_ID;
+        dialectId = AltibaseSQLDialect.ALTIBASE_DIALECT_ID;
     }
 
     public AltibaseMetaModelDescriptor(IConfigurationElement cfg) {
@@ -71,7 +71,7 @@ public class AltibaseMetaModelDescriptor extends AbstractDescriptor {
         }
 
         implType = new ObjectType(cfg.getAttribute("class"));
-        dialectId = CommonUtils.toString(cfg.getAttribute("dialect"), GenericSQLDialect.GENERIC_DIALECT_ID);
+        dialectId = CommonUtils.toString(cfg.getAttribute("dialect"), AltibaseSQLDialect.ALTIBASE_DIALECT_ID);
 
         IConfigurationElement[] replaceElements = cfg.getChildren("replace");
         for (IConfigurationElement replace : replaceElements) {

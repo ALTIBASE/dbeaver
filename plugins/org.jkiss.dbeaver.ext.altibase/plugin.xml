@@ -101,7 +101,7 @@
                                 <items label="%tree.function_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
                             </items>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericSequence" label="%tree.sequences.node.name" icon="#sequences" description="%tree.sequences.node.tip" visibleIf="object.dataSource.metaModel.supportsSequences(object.dataSource)">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseSequence" label="%tree.sequences.node.name" icon="#sequences" description="%tree.sequences.node.tip" visibleIf="object.dataSource.metaModel.supportsSequences(object.dataSource)">
                             <items label="%tree.sequence.node.name" path="sequence" property="sequences" icon="#sequence"/>
                         </folder>
                         <folder type="org.jkiss.dbeaver.ext.altibase.model.GenericSynonym" label="%tree.synonyms.node.name" icon="#synonyms" description="Synonyms" visibleIf="object.dataSource.metaModel.supportsSynonyms(object.dataSource)">
@@ -239,7 +239,7 @@
     </extension>
 
     <extension point="org.jkiss.dbeaver.sqlDialect">
-        <dialect id="altibase" parent="basic" class="org.jkiss.dbeaver.ext.altibase.model.GenericSQLDialect" label="Altibase" description="Altibase SQL dialect." icon="#database_icon_default" hidden="true">
+        <dialect id="altibase" parent="basic" class="org.jkiss.dbeaver.ext.altibase.model.AltibaseSQLDialect" label="Altibase" description="Altibase SQL dialect." icon="#database_icon_default" hidden="true">
         </dialect>
     </extension>
 

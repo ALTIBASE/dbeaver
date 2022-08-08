@@ -58,7 +58,7 @@ public abstract class GenericObjectContainer implements GenericStructContainer, 
     private final GenericSynonymCache synonymCache;
     private List<GenericPackage> packages;
     protected List<GenericProcedure> procedures;
-    protected List<? extends GenericSequence> sequences;
+    protected List<? extends AltibaseSequence> sequences;
     protected List<? extends GenericSynonym> synonyms;
 
     protected GenericObjectContainer(@NotNull GenericDataSource dataSource) {
@@ -362,11 +362,11 @@ public abstract class GenericObjectContainer implements GenericStructContainer, 
     }
 
     @Override
-    public Collection<? extends GenericSequence> getSequences(DBRProgressMonitor monitor) throws DBException {
+    public Collection<? extends AltibaseSequence> getSequences(DBRProgressMonitor monitor) throws DBException {
         return sequenceCache.getAllObjects(monitor, this);
     }
 
-    public GenericSequence getSequence(DBRProgressMonitor monitor, String name) throws DBException {
+    public AltibaseSequence getSequence(DBRProgressMonitor monitor, String name) throws DBException {
         return sequenceCache.getObject(monitor, this, name);
     }
 
@@ -487,7 +487,7 @@ public abstract class GenericObjectContainer implements GenericStructContainer, 
         }
     }
 
-    class GenericSequenceCache extends JDBCObjectCache<GenericObjectContainer, GenericSequence> {
+    class GenericSequenceCache extends JDBCObjectCache<GenericObjectContainer, AltibaseSequence> {
 
         @NotNull
         @Override
@@ -497,7 +497,7 @@ public abstract class GenericObjectContainer implements GenericStructContainer, 
 
         @Nullable
         @Override
-        protected GenericSequence fetchObject(@NotNull JDBCSession session, @NotNull GenericObjectContainer container, @NotNull JDBCResultSet resultSet) throws SQLException, DBException {
+        protected AltibaseSequence fetchObject(@NotNull JDBCSession session, @NotNull GenericObjectContainer container, @NotNull JDBCResultSet resultSet) throws SQLException, DBException {
             return container.getDataSource().getMetaModel().createSequenceImpl(session, container, resultSet);
         }
 

@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModelForeignKeyFetcher;
 import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
@@ -57,9 +57,9 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
         super(
             tableCache,
             GenericTableBase.class,
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseGenericConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FKTABLE_NAME),
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseGenericConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FK_NAME));
-        foreignKeyObject = tableCache.getDataSource().getMetaObject(AltibaseGenericConstants.OBJECT_FOREIGN_KEY);
+            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FKTABLE_NAME),
+            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FK_NAME));
+        foreignKeyObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_FOREIGN_KEY);
         fkIndex = 1;
     }
 

@@ -17,7 +17,7 @@
 
 package org.jkiss.dbeaver.ext.altibase.model.source;
 
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseSourceType;
+import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2ASourceType;
 import org.jkiss.dbeaver.model.edit.DBEPersistAction;
 import org.jkiss.dbeaver.model.exec.DBCException;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -30,7 +30,7 @@ public interface AltibaseSourceObject extends DBSObjectWithScript, AltibaseState
 
     void setName(String name);
 
-    AltibaseSourceType getSourceType();
+    AltibaseO2ASourceType getSourceType();
 
     DBEPersistAction[] getCompileActions(DBRProgressMonitor monitor) throws DBCException;
 

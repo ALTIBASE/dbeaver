@@ -77,7 +77,7 @@ public interface GenericStructContainer extends DBSObjectContainer, DBSProcedure
 
     Collection<? extends GenericProcedure> getFunctionsOnly(DBRProgressMonitor monitor) throws DBException;
 
-    Collection<? extends GenericSequence> getSequences(DBRProgressMonitor monitor) throws DBException;
+    Collection<? extends AltibaseSequence> getSequences(DBRProgressMonitor monitor) throws DBException;
 
     Collection<? extends GenericSynonym> getSynonyms(DBRProgressMonitor monitor) throws DBException;
 

@@ -18,8 +18,8 @@ package org.jkiss.dbeaver.ext.altibase.model.source;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseDataSource;
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseSchema;
+import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2ADataSource;
+import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2ASchema;
 import org.jkiss.dbeaver.model.DBPStatefulObject;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 
@@ -30,8 +30,8 @@ public interface AltibaseStatefulObject extends DBSObject, DBPStatefulObject
 {
     @NotNull
     @Override
-    AltibaseDataSource getDataSource();
+    AltibaseO2ADataSource getDataSource();
 
     @Nullable
-    AltibaseSchema getSchema();
+    AltibaseO2ASchema getSchema();
 }

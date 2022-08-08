@@ -26,9 +26,9 @@ import org.jkiss.dbeaver.ui.editors.sql.SQLSourceViewer;
 /**
  * GenericSourceViewEditor
  */
-public class GenericSourceViewEditor<T extends DBPScriptObject & DBSObject> extends SQLSourceViewer<T> {
+public class AltibaseSourceViewEditor<T extends DBPScriptObject & DBSObject> extends SQLSourceViewer<T> {
 
-    public GenericSourceViewEditor() {
+    public AltibaseSourceViewEditor() {
     }
 
     @Override

@@ -20,10 +20,14 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.AltibaseGenericConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.AltibaseMessages;
 import org.jkiss.dbeaver.ext.altibase.model.*;
+import org.jkiss.dbeaver.ext.altibase.util.StringUtil;
 import org.jkiss.dbeaver.model.*;
+import org.jkiss.dbeaver.model.exec.DBCException;
 import org.jkiss.dbeaver.model.exec.DBCFeatureNotSupportedException;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCCallableStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
@@ -44,9 +48,12 @@ import org.jkiss.dbeaver.model.struct.rdb.DBSIndexType;
 import org.jkiss.dbeaver.model.struct.rdb.DBSProcedureType;
 import org.jkiss.utils.CommonUtils;
 
+import java.sql.CallableStatement;
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
+import java.sql.Types;
 import java.util.*;
 
 /**
@@ -62,6 +69,8 @@ public class AltibaseMetaModel {
     // This is needed for some strange JDBC drivers which returns not a table objects
     // in DatabaseMetaData.getTables method (PostgreSQL especially)
     private static final Set<String> INVALID_TABLE_TYPES = new HashSet<>();
+    
+    //public static boolean DBMS_METADATA = false;
 
     static {
     	INVALID_TABLE_TYPES.add("SEQUENCE");
@@ -82,7 +91,7 @@ public class AltibaseMetaModel {
     // Datasource
 
     public GenericDataSource createDataSourceImpl(DBRProgressMonitor monitor, DBPDataSourceContainer container) throws DBException {
-        return new GenericDataSource(monitor, container, this, new GenericSQLDialect());
+        return new GenericDataSource(monitor, container, this, new AltibaseSQLDialect());
     }
 
     //////////////////////////////////////////////////////
@@ -122,104 +131,40 @@ public class AltibaseMetaModel {
     // True if schemas can be omitted.
     // App will suppress any error during schema read then
     public boolean isSchemasOptional() {
-        return true;
+        return false;
     }
 
     public boolean isSystemSchema(GenericSchema schema) {
-        return false;
+        //return (schema.getName().equalsIgnoreCase("SYSTEM_"));
+    	return false;
     }
 
     public List<GenericSchema> loadSchemas(JDBCSession session, GenericDataSource dataSource, GenericCatalog catalog)
         throws DBException
     {
+    	//DBMS_METADATA = hasDbmsMetadataPacakge(session);
+    	
         if (dataSource.isOmitSchema()) {
             return null;
         }
 
         try {
-            final GenericMetaObject schemaObject = getMetaObject(AltibaseGenericConstants.OBJECT_SCHEMA);
-            final DBSObjectFilter schemaFilters = dataSource.getContainer().getObjectFilter(GenericSchema.class, catalog, false);
+            final GenericMetaObject schemaObject = getMetaObject(AltibaseConstants.OBJECT_SCHEMA);
 
             final List<GenericSchema> tmpSchemas = new ArrayList<>();
             JDBCResultSet dbResult = null;
             boolean catalogSchemas = false, schemasFiltered = false;
-            if (catalog != null) {
-                try {
-                    dbResult = session.getMetaData().getSchemas(
-                        catalog.getName(),
-                        schemaFilters != null && schemaFilters.hasSingleMask() ?
-                            schemaFilters.getSingleMask() :
-                            dataSource.getAllObjectsPattern());
-                    catalogSchemas = true;
-                } catch (Throwable e) {
-                    if (isSchemasOptional()) {
-                        // This method not supported (may be old driver version)
-                        // Use general schema reading method
-                        log.debug("Error reading schemas in catalog '" + catalog.getName() + "' - " + e.getClass().getSimpleName() + " - " + e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-            } else if (dataSource.isSchemaFiltersEnabled()) {
-                // In some drivers (e.g. jt400) reading schemas with empty catalog leads to
-                // incorrect results.
-                try {
-                    dbResult = session.getMetaData().getSchemas(
-                        null,
-                        schemaFilters != null && schemaFilters.hasSingleMask() ?
-                            schemaFilters.getSingleMask() :
-                            dataSource.getAllObjectsPattern());
-                } catch (Throwable e) {
-                    if (isSchemasOptional()) {
-                        log.debug("Error reading global schemas " + " - " + e.getMessage());
-                    } else {
-                        throw e;
-                    }
-                }
-            }
-            if (dbResult == null) {
-
-                String oldCatalog = null;
-                if (supportsCatalogChange() && catalog != null) {
-                    // Try to set catalog explicitly. May be needed for old drivers (Netezza)
-                    try {
-                        oldCatalog = session.getCatalog();
-                    } catch (Throwable ignored) {
-                    }
-                    if (oldCatalog != null && !CommonUtils.equalObjects(oldCatalog, catalog.getName())) {
-                        try {
-                            session.setCatalog(catalog.getName());
-                        } catch (Throwable e) {
-                            oldCatalog = null;
-                        }
-                    } else {
-                        oldCatalog = null;
-                    }
-                }
-
-                try {
-                    dbResult = session.getMetaData().getSchemas();
-                } finally {
-                    if (oldCatalog != null) {
-                        try {
-                            session.setCatalog(oldCatalog);
-                        } catch (Throwable e) {
-                            log.debug("Error while setting active catalog name back to '" + oldCatalog + "'", e);
-                        }
-                    }
-                }
-            }
-
+			
             try {
+            	dbResult = session.getMetaData().getSchemas();
+            	
                 while (dbResult.next()) {
                     if (session.getProgressMonitor().isCanceled()) {
                         break;
                     }
+                    
                     String schemaName = GenericUtils.safeGetString(schemaObject, dbResult, JDBCConstants.TABLE_SCHEM);
-                    if (CommonUtils.isEmpty(schemaName)) {
-                        // some drivers uses TABLE_OWNER column instead of TABLE_SCHEM
-                        schemaName = GenericUtils.safeGetString(schemaObject, dbResult, JDBCConstants.TABLE_OWNER);
-                    }
+
                     boolean nullSchema = false;
                     if (CommonUtils.isEmpty(schemaName)) {
                         if (supportsNullSchemas()) {
@@ -229,29 +174,12 @@ public class AltibaseMetaModel {
                             continue;
                         }
                     }
-                    if (schemaFilters != null && !schemaFilters.matches(schemaName)) {
-                        // Doesn't match filter
+                    
+                    /* JDBC error */
+                    if (schemaName.equalsIgnoreCase("PUBLIC")) {
                         schemasFiltered = true;
                         continue;
                     }
-                    String catalogName = GenericUtils.safeGetString(schemaObject, dbResult, JDBCConstants.TABLE_CATALOG);
-
-                    if (!CommonUtils.isEmpty(catalogName)) {
-                        if (catalog == null) {
-                            if (!dataSource.isOmitCatalog()) {
-                                // Invalid schema's catalog or schema without catalog (then do not use schemas as structure)
-                                log.debug("Catalog name (" + catalogName + ") found for schema '" + schemaName + "' while schema doesn't have parent catalog");
-                            }
-                        } else if (!catalog.getName().equals(catalogName)) {
-                            if (!catalogSchemas) {
-                                // Just skip it - we have list of all existing schemas and this one belongs to another catalog
-                                continue;
-                            }
-                            log.debug("Catalog name '" + catalogName + "' differs from schema's catalog '" + catalog.getName() + "'");
-                        }
-                    }
-
-                    //session.getProgressMonitor().subTask("Schema " + schemaName);
 
                     GenericSchema schema = createSchemaImpl(dataSource, catalog, schemaName);
                     if (nullSchema) {
@@ -266,7 +194,7 @@ public class AltibaseMetaModel {
                 // There is just one catalog and empty schema list. Try to read global schemas
                 return loadSchemas(session, dataSource, null);
             }
-            if (dataSource.isOmitSingleSchema() && catalog == null && tmpSchemas.size() == 1 && (schemaFilters == null || schemaFilters.isNotApplicable())) {
+            if (dataSource.isOmitSingleSchema() && catalog == null && tmpSchemas.size() == 1 ) {
                 // Only one schema and no catalogs
                 // Most likely it is a fake one, let's skip it
                 // Anyway using "%" instead is ok
@@ -293,7 +221,6 @@ public class AltibaseMetaModel {
         return false;
     }
 
-    // Schema with NULL name is a valid schema [Phoenix]
     public boolean supportsNullSchemas() {
         return false;
     }
@@ -313,9 +240,10 @@ public class AltibaseMetaModel {
         Map<String, GenericProcedure> funcMap = new LinkedHashMap<>();
 
         GenericDataSource dataSource = container.getDataSource();
-        GenericMetaObject procObject = dataSource.getMetaObject(AltibaseGenericConstants.OBJECT_PROCEDURE);
+        GenericMetaObject procObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load procedures")) {
             boolean supportsFunctions = false;
+            /*
             if (hasFunctionSupport()) {
                 try {
                     // Try to read functions (note: this function appeared only in Java 1.6 so it maybe not implemented by many drivers)
@@ -381,7 +309,7 @@ public class AltibaseMetaModel {
                     log.debug("Can't read generic functions", e);
                 }
             }
-
+*/
             if (hasProcedureSupport()) {
                 {
                     // Read procedures
@@ -484,7 +412,74 @@ public class AltibaseMetaModel {
     }
 
     public String getProcedureDDL(DBRProgressMonitor monitor, GenericProcedure sourceObject) throws DBException {
-        return "-- Source code not available";
+    	/*
+    	StringBuilder ddl = new StringBuilder();
+    	String content = null;
+    	boolean hasDDL = false;
+    	JDBCPreparedStatement dbContent = null;
+    	GenericMetaObject procObject = getMetaObject(AltibaseGenericConstants.OBJECT_PROCEDURE);
+
+    	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get procedure DDL")) {
+    		dbContent = session.prepareStatement(
+    				"SELECT "
+    						+ " parse "
+    						+ " FROM "
+    						+ " SYSTEM_.SYS_PROC_PARSE_ PP, SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_PROCEDURES_ P"
+    						+ " WHERE"
+    						+ " U.USER_NAME = ?"
+    						+ " AND P.PROC_NAME = ?"
+    						+ " AND PP.USER_ID = U.USER_ID"
+    						+ " AND PP.PROC_OID = P.PROC_OID"
+    						+ " ORDER BY SEQ_NO ASC");
+    		dbContent.setString(1, sourceObject.getSchema().getName());
+    		dbContent.setString(2, sourceObject.getName());
+
+    		JDBCResultSet dbResult = dbContent.executeQuery();
+    		while (dbResult.next()) {
+    			if (monitor.isCanceled()) {
+    				break;
+    			}
+
+    			if (hasDDL == true) {
+                	ddl.append(StringUtil.NEW_LINE);
+                }
+                else {
+                	hasDDL = true;
+                }
+                	
+                content = GenericUtils.safeGetStringTrimmed(procObject, dbResult, "PARSE");
+                if (content != null) {
+                	ddl.append(content);
+                }
+            }
+    	} catch (Exception e)
+    	{
+    		log.warn("Can't read procedure DDL", e);
+    	}
+    	finally
+    	{
+    		dbContent.close();
+    	}
+        */
+    	String ddl = null;
+
+    	if (hasDbmsMetadataPacakge(monitor, sourceObject)) {
+    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), "PROCEDURE");
+    	} else {
+	    	String sql = "SELECT "
+	    			+ " parse "
+	    			+ " FROM "
+	    			+ " SYSTEM_.SYS_PROC_PARSE_ PP, SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_PROCEDURES_ P"
+	    			+ " WHERE"
+	    			+ " U.USER_NAME = ?"
+	    			+ " AND P.PROC_NAME = ?"
+	    			+ " AND PP.USER_ID = U.USER_ID"
+	    			+ " AND PP.PROC_OID = P.PROC_OID"
+	    			+ " ORDER BY SEQ_NO ASC";
+	    	ddl = getViewProcDDLFromCatalog(monitor, sourceObject, sourceObject.getSchema().getName(), sql);
+    	}
+        
+        return (ddl.length() < 1)? "-- Source code not available":ddl.toString();
     }
 
     public String getPackageName(GenericDataSource dataSource, String catalogName, String procedureName, String specificName) {
@@ -636,9 +631,29 @@ public class AltibaseMetaModel {
     }
 
     public String getViewDDL(DBRProgressMonitor monitor, GenericView sourceObject, Map<String, Object> options) throws DBException {
-        return "-- View definition not available";
+    	String ddl = null;
+    	
+    	if (hasDbmsMetadataPacakge(monitor, sourceObject)) {
+    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), sourceObject.getTableType());
+    	} else {
+	    	String sql = "SELECT "
+					+ " parse "
+					+ " FROM "
+					+ " SYSTEM_.SYS_VIEW_PARSE_ VP, SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_TABLES_ T"
+					+ " WHERE"
+					+ " U.USER_NAME = ?"
+					+ " AND T.TABLE_NAME = ?"
+					+ " AND T.TABLE_TYPE = 'V'"
+					+ " AND VP.USER_ID = U.USER_ID"
+					+ " AND VP.VIEW_ID = T.TABLE_ID"
+					+ " ORDER BY SEQ_NO ASC";
+	    	
+	    	ddl = getViewProcDDLFromCatalog(monitor, sourceObject, sourceObject.getSchema().getName(), sql);
+    	}
+        
+        return (ddl.length() < 1)? "-- View definition not available":ddl.toString();
     }
-
+    
     public String getTableDDL(DBRProgressMonitor monitor, GenericTableBase sourceObject, Map<String, Object> options) throws DBException {
         return DBStructUtils.generateTableDDL(monitor, sourceObject, options, false);
     }
@@ -659,7 +674,7 @@ public class AltibaseMetaModel {
     }
 
     public boolean isView(String tableType) {
-        return tableType.toUpperCase(Locale.ENGLISH).contains(AltibaseGenericConstants.TABLE_TYPE_VIEW);
+        return tableType.toUpperCase(Locale.ENGLISH).contains(AltibaseConstants.TABLE_TYPE_VIEW);
     }
 
     //////////////////////////////////////////////////////
@@ -796,13 +811,21 @@ public class AltibaseMetaModel {
 
     public JDBCStatement prepareSequencesLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
         final JDBCPreparedStatement dbStat = session.prepareStatement(
-                "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=? AND TABLE_TYPE = 'SEQUENCE'");
+        		"SELECT"
+        				+ " TABLE_NAME, CURRENT_SEQ, START_SEQ, INCREMENT_SEQ, CACHE_SIZE, MAX_SEQ, MIN_SEQ, IS_CYCLE"
+        			+ " FROM V$SEQ S, SYSTEM_.SYS_TABLES_ T, SYSTEM_.SYS_USERS_ U"
+        			+ " WHERE"
+        				+ " U.USER_NAME = ?"
+        				+ " AND U.USER_ID = T.USER_ID"
+        				+ " AND T.TABLE_OID = S.SEQ_OID"
+        				+ " AND T.TABLE_TYPE= 'S'"
+        			+ " ORDER BY TABLE_NAME ASC");
         dbStat.setString(1, container.getName());
         return dbStat;
     }
 
-    public GenericSequence createSequenceImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
-        throw new DBCFeatureNotSupportedException();
+    public AltibaseSequence createSequenceImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
+        return new AltibaseSequence(container, dbResult);
     }
 
     public boolean handleSequenceCacheReadingError(Exception error) {
@@ -888,12 +911,124 @@ public class AltibaseMetaModel {
     }
 
     public boolean supportsCheckConstraints() {
-        return false;
+        return true;
     }
 
     public boolean supportsViews(@NotNull GenericDataSource dataSource) {
         DBPDataSourceInfo dataSourceInfo = dataSource.getInfo();
         return !(dataSourceInfo instanceof JDBCDataSourceInfo) ||
             ((JDBCDataSourceInfo) dataSourceInfo).supportsViews();
+    }
+    
+    private String getViewProcDDLFromCatalog(DBRProgressMonitor monitor, DBSObject sourceObject, String schemaName, String sql) {
+    	StringBuilder ddl = new StringBuilder(AltibaseMessages.NO_DBMS_METADATA);
+    	String content = null;
+    	boolean hasDDL = false;
+    	JDBCPreparedStatement jpstmt = null;
+    	JDBCResultSet jrs = null;
+    	GenericMetaObject metaObject = getMetaObject(AltibaseConstants.OBJECT_TABLE);
+
+    	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get DDL from DB")) {
+    		jpstmt = session.prepareStatement(sql);
+    		jpstmt.setString(1, schemaName);
+    		jpstmt.setString(2, sourceObject.getName());
+
+    		jrs = jpstmt.executeQuery();
+    		while (jrs.next()) {
+    			if (monitor.isCanceled()) {
+    				break;
+    			}
+
+    			if (hasDDL == true) {
+                	ddl.append(StringUtil.NEW_LINE);
+                }
+                else {
+                	hasDDL = true;
+                }
+                	
+                content = GenericUtils.safeGetStringTrimmed(metaObject, jrs, "PARSE");
+                if (content != null) {
+                	ddl.append(content);
+                }
+            }
+    	} catch (Exception e)
+    	{
+    		log.warn("Can't read DDL", e);
+    	}
+    	finally
+    	{
+    		jrs.close();
+    		jpstmt.close();
+    	}
+    	
+    	return ddl.toString();
+    }
+    
+    private String getDDLFromDbmsMetadata(DBRProgressMonitor monitor, DBSObject sourceObject, String schemaName, String objectType) {
+    	String ddl = null;
+    	CallableStatement cstmt = null;
+
+    	/* Need to use native CallableStatement
+    	 * jcstmt = session.prepareCall("exec ? := dbms_metadata.get_ddl(?, ?, ?)");
+			java.lang.NullPointerException
+				at Altibase.jdbc.driver.AltibaseParameterMetaData.getParameterMode(AltibaseParameterMetaData.java:31)
+				at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCCallableStatementImpl.getOutputParametersFromJDBC(JDBCCallableStatementImpl.java:316)
+				at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCCallableStatementImpl.<init>(JDBCCallableStatementImpl.java:115)
+				at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCFactoryDefault.createCallableStatement(JDBCFactoryDefault.java:48)
+    	 */
+    	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get DDL from DBMS_METADATA")) {
+    		Connection conn = session.getOriginal();
+    		cstmt = conn.prepareCall("exec ? := dbms_metadata.get_ddl(?, ?, ?)");
+    		cstmt.registerOutParameter(1, Types.VARCHAR);
+    		
+    		cstmt.setString(2, objectType);
+    		cstmt.setString(3, sourceObject.getName());
+    		cstmt.setString(4, schemaName);
+
+    		cstmt.execute();
+    		
+    		ddl = cstmt.getString(1);
+
+    	} catch (Exception e) {
+    		log.warn("Can't read DDL from DBMS_METADATA", e);
+    	}
+    	finally {
+    		try {
+				if (cstmt != null) {
+					cstmt.close();
+				}
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	
+    	return ddl.toString();
+    }
+    
+    private boolean hasDbmsMetadataPacakge(DBRProgressMonitor monitor, DBSObject sourceObject) {
+    	boolean hasDbmsMetadataPacakge = false;
+    	JDBCPreparedStatement jpstmt = null;
+    	JDBCResultSet jrs = null;
+    	
+    	String sql = "SELECT "
+    			+ " count(*)"
+    			+ " FROM "
+    				+ " SYSTEM_.SYS_PACKAGES_ P" 
+    			+ " WHERE"
+    				+ " PACKAGE_NAME = 'DBMS_METADATA' "
+    				+ " AND STATUS = 0"; // valid
+    	
+    	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Check DBMS_METADATA")) {
+    		jpstmt = session.prepareStatement(sql);
+    		jrs =  jpstmt.executeQuery();
+    		if (jrs.next()) {
+    			hasDbmsMetadataPacakge = (jrs.getInt(1) == 2);
+    		}
+    	} catch(Exception e) {
+    		log.warn("Can't check DBMS_METADATA", e);
+    	}
+    	
+    	return hasDbmsMetadataPacakge;
     }
 }
