@@ -20,7 +20,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
@@ -40,15 +40,15 @@ import java.util.Locale;
 /**
  * Index cache implementation
  */
-class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTableBase, GenericTableIndex, GenericTableIndexColumn> {
+class IndexCache extends JDBCCompositeCache<AltibaseStructContainer, AltibaseTableBase, AltibaseTableIndex, AltibaseTableIndexColumn> {
 
-    private final GenericMetaObject indexObject;
+    private final AltibaseMetaObject indexObject;
 
     IndexCache(TableCache tableCache)
     {
         super(
             tableCache,
-            GenericTableBase.class,
+            AltibaseTableBase.class,
             GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_INDEX, JDBCConstants.TABLE_NAME),
             GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_INDEX, JDBCConstants.INDEX_NAME));
         indexObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_INDEX);
@@ -56,7 +56,7 @@ class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTable
 
     @NotNull
     @Override
-    protected JDBCStatement prepareObjectsStatement(JDBCSession session, GenericStructContainer owner, GenericTableBase forParent)
+    protected JDBCStatement prepareObjectsStatement(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase forParent)
         throws SQLException
     {
         try {
@@ -80,7 +80,7 @@ class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTable
 
     @Nullable
     @Override
-    protected GenericTableIndex fetchObject(JDBCSession session, GenericStructContainer owner, GenericTableBase parent, String indexName, JDBCResultSet dbResult)
+    protected AltibaseTableIndex fetchObject(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase parent, String indexName, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         boolean isNonUnique = GenericUtils.safeGetBoolean(indexObject, dbResult, JDBCConstants.NON_UNIQUE);
@@ -126,9 +126,9 @@ class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTable
 
     @Nullable
     @Override
-    protected GenericTableIndexColumn[] fetchObjectRow(
+    protected AltibaseTableIndexColumn[] fetchObjectRow(
         JDBCSession session,
-        GenericTableBase parent, GenericTableIndex object, JDBCResultSet dbResult)
+        AltibaseTableBase parent, AltibaseTableIndex object, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         int ordinalPosition = GenericUtils.safeGetInt(indexObject, dbResult, JDBCConstants.ORDINAL_POSITION);
@@ -139,13 +139,13 @@ class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTable
             // Maybe a statistics index without column
             return null;
         }
-        GenericTableColumn tableColumn = parent.getAttribute(session.getProgressMonitor(), columnName);
+        AltibaseTableColumn tableColumn = parent.getAttribute(session.getProgressMonitor(), columnName);
         if (tableColumn == null) {
             log.debug("Column '" + columnName + "' not found in table '" + parent.getName() + "' for index '" + object.getName() + "'");
             return null;
         }
 
-        return new GenericTableIndexColumn[] { new GenericTableIndexColumn(
+        return new AltibaseTableIndexColumn[] { new AltibaseTableIndexColumn(
             object,
             tableColumn,
             ordinalPosition,
@@ -153,7 +153,7 @@ class IndexCache extends JDBCCompositeCache<GenericStructContainer, GenericTable
     }
 
     @Override
-    protected void cacheChildren(DBRProgressMonitor monitor, GenericTableIndex index, List<GenericTableIndexColumn> rows)
+    protected void cacheChildren(DBRProgressMonitor monitor, AltibaseTableIndex index, List<AltibaseTableIndexColumn> rows)
     {
         index.setColumns(rows);
     }

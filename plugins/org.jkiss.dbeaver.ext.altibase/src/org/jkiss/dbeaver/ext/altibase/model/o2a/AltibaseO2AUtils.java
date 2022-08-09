@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.edit.AltibaseTableColumnManager;
+import org.jkiss.dbeaver.ext.altibase.edit.AltibaseO2ATableColumnManager;
 import org.jkiss.dbeaver.ext.altibase.model.source.AltibaseSourceObject;
 import org.jkiss.dbeaver.ext.altibase.model.source.AltibaseStatefulObject;
 import org.jkiss.dbeaver.model.DBConstants;
@@ -223,7 +223,7 @@ public class AltibaseO2AUtils {
                 for (AltibaseO2ATableColumn column : CommonUtils.safeCollection(attributes)) {
                     String columnComment = column.getComment(monitor);
                     if (!CommonUtils.isEmpty(columnComment)) {
-                        AltibaseTableColumnManager.addColumnCommentAction(actions, column, column.getTable());
+                        AltibaseO2ATableColumnManager.addColumnCommentAction(actions, column, column.getTable());
                     }
                 }
                 if (!CommonUtils.isEmpty(actions)) {

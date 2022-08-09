@@ -17,26 +17,30 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBPNamedObject2;
 import org.jkiss.dbeaver.model.DBPQualifiedObject;
+import org.jkiss.dbeaver.model.DBPScriptObject;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.meta.PropertyLength;
+import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.dbeaver.model.struct.rdb.DBSSequence;
 
 /**
  * AltibaseSequence
  */
-public class AltibaseSequence implements DBSSequence, DBPQualifiedObject, DBPNamedObject2
+public class AltibaseSequence implements DBSSequence, DBPScriptObject, DBPQualifiedObject, DBPNamedObject2
 {
-    private GenericStructContainer container;
+    private AltibaseStructContainer container;
     private String name;
     private String description;
     private BigDecimal lastValue;
@@ -47,8 +51,10 @@ public class AltibaseSequence implements DBSSequence, DBPQualifiedObject, DBPNam
     private BigDecimal cacheSize;
     private BigDecimal startWith;
     private boolean flagCycle;
+    
+    private String source;
 
-    public AltibaseSequence(GenericStructContainer container, JDBCResultSet dbResult) {
+    public AltibaseSequence(AltibaseStructContainer container, JDBCResultSet dbResult) {
         this.container = container;
         
         this.name = JDBCUtils.safeGetString(dbResult, "TABLE_NAME");
@@ -94,7 +100,7 @@ public class AltibaseSequence implements DBSSequence, DBPQualifiedObject, DBPNam
 
     @NotNull
     @Override
-    public GenericDataSource getDataSource() {
+    public AltibaseDataSource getDataSource() {
         return container.getDataSource();
     }
 
@@ -116,9 +122,24 @@ public class AltibaseSequence implements DBSSequence, DBPQualifiedObject, DBPNam
     public void setLastValue(BigDecimal lastValue) {
         this.lastValue = lastValue;
     }
-
-    @Override
+    
     @Property(viewable = true, order = 3)
+    public BigDecimal getStartWith() {
+        return startWith;
+    }
+    
+    @Override
+    @Property(viewable = true, order = 4)
+    public BigDecimal getIncrementBy() {
+        return incrementBy;
+    }
+
+    public void setIncrementBy(BigDecimal incrementBy) {
+        this.incrementBy = incrementBy;
+    }
+    
+    @Override
+    @Property(viewable = true, order = 5)
     public BigDecimal getMinValue() {
         return minValue;
     }
@@ -128,7 +149,7 @@ public class AltibaseSequence implements DBSSequence, DBPQualifiedObject, DBPNam
     }
 
     @Override
-    @Property(viewable = true, order = 4)
+    @Property(viewable = true, order = 6)
     public BigDecimal getMaxValue() {
         return maxValue;
     }
@@ -136,24 +157,63 @@ public class AltibaseSequence implements DBSSequence, DBPQualifiedObject, DBPNam
     public void setMaxValue(BigDecimal maxValue) {
         this.maxValue = maxValue;
     }
-
-    @Override
-    @Property(viewable = true, order = 5)
-    public BigDecimal getIncrementBy() {
-        return incrementBy;
-    }
-
-    public void setIncrementBy(BigDecimal incrementBy) {
-        this.incrementBy = incrementBy;
-    }
     
-    @Property(viewable = true, order = 6)
+    @Property(viewable = true, order = 7)
     public BigDecimal getCacheSize() {
         return cacheSize;
     }
     
-    @Property(viewable = true, order = 7)
+    @Property(viewable = true, order = 8)
     public boolean getCycle() {
         return flagCycle;
     }
+    
+    public boolean isCycle() { return flagCycle; }
+
+    public AltibaseSchema getSchema() { return container.getSchema(); }
+    
+    public String buildStatement(boolean forUpdate) {
+        StringBuilder sb = new StringBuilder();
+        if (forUpdate) {
+            sb.append("ALTER SEQUENCE ");
+        } else {
+            sb.append("CREATE SEQUENCE ");
+        }
+        sb.append(getFullyQualifiedName(DBPEvaluationContext.DDL)).append(" ");
+
+        if (getStartWith() != null) {
+            sb.append("START WITH ").append(getStartWith()).append(" ");
+        }
+        
+        if (getIncrementBy() != null) {
+            sb.append("INCREMENT BY ").append(getIncrementBy()).append(" ");
+        }
+        if (getMinValue() != null) {
+            sb.append("MINVALUE ").append(getMinValue()).append(" ");
+        }
+        if (getMaxValue() != null) {
+            sb.append("MAXVALUE ").append(getMaxValue()).append(" ");
+        }
+
+        if (getCacheSize().compareTo(BigDecimal.ZERO) > 0) {
+            sb.append("CACHE ").append(getCacheSize()).append(" ");
+        }
+
+        if (isCycle()) {
+            sb.append("CYCLE ");
+        }
+
+        return sb.toString();
+    }
+    
+    /*
+     * Unable to use DBMS_METADATA for sequence because it returns 'START_WITH' value as CURRENT_SEQ+INCREMENT_SEQ for schema migration
+     */
+	@Override
+	public String getObjectDefinitionText(DBRProgressMonitor monitor, Map<String, Object> options) throws DBException {
+        if (source == null) {
+        	source = buildStatement(false);
+        }
+        return source;
+	}
 }

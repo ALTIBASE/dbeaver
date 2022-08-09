@@ -17,8 +17,8 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaColumn;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaColumn;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.sql.SQLDialect;
 import org.jkiss.dbeaver.model.sql.SQLUtils;
@@ -32,22 +32,22 @@ import java.sql.ResultSet;
  */
 public class GenericUtils {
 
-    public static Object getColumn(GenericDataSource dataSource, String objectType, String columnId)
+    public static Object getColumn(AltibaseDataSource dataSource, String objectType, String columnId)
     {
-        GenericMetaObject object = dataSource.getMetaObject(objectType);
+        AltibaseMetaObject object = dataSource.getMetaObject(objectType);
         if (object == null) {
             return columnId;
         }
-        GenericMetaColumn column = object.getColumn(columnId);
+        AltibaseMetaColumn column = object.getColumn(columnId);
         if (column == null || !column.isSupported()) {
             return columnId;
         }
         return column.getColumnIdentifier();
     }
 
-    public static Object getColumn(GenericMetaObject object, String columnId)
+    public static Object getColumn(AltibaseMetaObject object, String columnId)
     {
-        GenericMetaColumn column = object == null ? null : object.getColumn(columnId);
+        AltibaseMetaColumn column = object == null ? null : object.getColumn(columnId);
         if (column == null || !column.isSupported()) {
             return columnId;
         }
@@ -55,7 +55,7 @@ public class GenericUtils {
     }
 
 
-    public static String safeGetString(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static String safeGetString(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -65,7 +65,7 @@ public class GenericUtils {
         }
     }
 
-    public static String safeGetStringTrimmed(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static String safeGetStringTrimmed(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -75,7 +75,7 @@ public class GenericUtils {
         }
     }
 
-    public static int safeGetInt(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static int safeGetInt(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -85,7 +85,7 @@ public class GenericUtils {
         }
     }
 
-    public static Integer safeGetInteger(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static Integer safeGetInteger(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -95,7 +95,7 @@ public class GenericUtils {
         }
     }
 
-    public static long safeGetLong(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static long safeGetLong(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -105,7 +105,7 @@ public class GenericUtils {
         }
     }
 
-    public static double safeGetDouble(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static double safeGetDouble(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -115,7 +115,7 @@ public class GenericUtils {
         }
     }
 
-    public static BigDecimal safeGetBigDecimal(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static BigDecimal safeGetBigDecimal(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -125,7 +125,7 @@ public class GenericUtils {
         }
     }
 
-    public static boolean safeGetBoolean(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static boolean safeGetBoolean(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {
@@ -135,7 +135,7 @@ public class GenericUtils {
         }
     }
 
-    public static Object safeGetObject(GenericMetaObject object, ResultSet dbResult, String columnId)
+    public static Object safeGetObject(AltibaseMetaObject object, ResultSet dbResult, String columnId)
     {
         Object column = getColumn(object, columnId);
         if (column instanceof Number) {

@@ -26,21 +26,21 @@ import org.jkiss.dbeaver.model.impl.jdbc.cache.JDBCObjectWithParentCache;
 
 import java.sql.SQLException;
 
-public class TableTriggerCache extends JDBCObjectWithParentCache<GenericStructContainer, GenericTableBase, GenericTrigger> {
+public class TableTriggerCache extends JDBCObjectWithParentCache<AltibaseStructContainer, AltibaseTableBase, AltibaseTrigger> {
 
     TableTriggerCache(TableCache tableCache) {
-        super(tableCache, GenericTableBase.class, "OWNER", "TRIGGER_NAME");
+        super(tableCache, AltibaseTableBase.class, "OWNER", "TRIGGER_NAME");
     }
 
     @NotNull
     @Override
-    protected JDBCStatement prepareObjectsStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer genericStructContainer, @Nullable GenericTableBase tableBase) throws SQLException {
+    protected JDBCStatement prepareObjectsStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer genericStructContainer, @Nullable AltibaseTableBase tableBase) throws SQLException {
         return genericStructContainer.getDataSource().getMetaModel().prepareTableTriggersLoadStatement(session, genericStructContainer, tableBase);
     }
 
     @Nullable
     @Override
-    protected GenericTrigger fetchObject(@NotNull JDBCSession session, @NotNull GenericStructContainer genericStructContainer, @NotNull GenericTableBase genericTableBase, String triggerName, @NotNull JDBCResultSet resultSet) throws SQLException, DBException {
+    protected AltibaseTrigger fetchObject(@NotNull JDBCSession session, @NotNull AltibaseStructContainer genericStructContainer, @NotNull AltibaseTableBase genericTableBase, String triggerName, @NotNull JDBCResultSet resultSet) throws SQLException, DBException {
         return genericStructContainer.getDataSource().getMetaModel().createTableTriggerImpl(session, genericStructContainer, genericTableBase, triggerName, resultSet);
     }
 }

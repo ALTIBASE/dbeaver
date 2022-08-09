@@ -1,7 +1,6 @@
 /*
  * DBeaver - Universal Database Manager
  * Copyright (C) 2010-2022 DBeaver Corp and others
- * Copyright (C) 2011-2012 Eugene Fradkin (eugene.fradkin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,142 +14,147 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jkiss.dbeaver.ext.altibase.edit;
 
-import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2AConstants;
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2ADataType;
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2ATableBase;
-import org.jkiss.dbeaver.ext.altibase.model.o2a.AltibaseO2ATableColumn;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseTable;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableBase;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableColumn;
+import org.jkiss.dbeaver.ext.altibase.model.GenericUtils;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
+import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPDataKind;
-import org.jkiss.dbeaver.model.DBPEvaluationContext;
-import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
-import org.jkiss.dbeaver.model.edit.DBEObjectRenamer;
 import org.jkiss.dbeaver.model.edit.DBEPersistAction;
 import org.jkiss.dbeaver.model.exec.DBCExecutionContext;
-import org.jkiss.dbeaver.model.impl.edit.SQLDatabasePersistAction;
+import org.jkiss.dbeaver.model.impl.edit.DBECommandAbstract;
 import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLTableColumnManager;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
-import org.jkiss.dbeaver.model.runtime.VoidProgressMonitor;
-import org.jkiss.dbeaver.model.sql.SQLUtils;
 import org.jkiss.dbeaver.model.struct.DBSDataType;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 import org.jkiss.dbeaver.model.struct.cache.DBSObjectCache;
+import org.jkiss.utils.CommonUtils;
 
 import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Altibase table column manager
+ * Generic table column manager
  */
-public class AltibaseTableColumnManager extends SQLTableColumnManager<AltibaseO2ATableColumn, AltibaseO2ATableBase> implements DBEObjectRenamer<AltibaseO2ATableColumn> {
-
-    protected final ColumnModifier<AltibaseO2ATableColumn> AltibaseDataTypeModifier = (monitor, column, sql, command) -> {
-        AltibaseO2ADataType dataType = column.getDataType();
-        if (dataType != null) {
-            String typeName = dataType.getTypeName();
-            if (dataType.getDataKind() == DBPDataKind.STRING && column.isPersisted() &&
-                (AltibaseO2AConstants.TYPE_INTERVAL_DAY_SECOND.equals(typeName) || AltibaseO2AConstants.TYPE_INTERVAL_YEAR_MONTH.equals(typeName))) {
-                // These types have precision inside type name
-                Integer precision = column.getPrecision();
-                if (AltibaseO2AConstants.TYPE_INTERVAL_YEAR_MONTH.equals(typeName) && precision != null) {
-                    if (precision != AltibaseO2AConstants.INTERVAL_DEFAULT_YEAR_DAY_PRECISION) {
-                       String patchedName = " INTERVAL YEAR(" + precision + ") TO MONTH";
-                       sql.append(patchedName);
-                       return;
-                    }
-                } else {
-                    Integer scale = column.getScale(); // fractional seconds precision
-                    if (scale != null) {
-                        String patchedName = " INTERVAL DAY(" + precision + ") TO SECOND(" + scale + ")";
-                        sql.append(patchedName);
-                        return;
-                    }
-                }
-            }
-        }
-        DataTypeModifier.appendModifier(monitor, column, sql, command);
-    };
+public class AltibaseTableColumnManager extends SQLTableColumnManager<AltibaseTableColumn, AltibaseTableBase> {
 
     @Nullable
     @Override
-    public DBSObjectCache<? extends DBSObject, AltibaseO2ATableColumn> getObjectsCache(AltibaseO2ATableColumn object)
-    {
-        return object.getParentObject().getContainer().tableCache.getChildrenCache(object.getParentObject());
-    }
-
-    protected ColumnModifier[] getSupportedModifiers(AltibaseO2ATableColumn column, Map<String, Object> options)
-    {
-        return new ColumnModifier[] {AltibaseDataTypeModifier, DefaultModifier, NullNotNullModifierConditional};
+    public DBSObjectCache<? extends DBSObject, AltibaseTableColumn> getObjectsCache(AltibaseTableColumn object) {
+        return object.getParentObject().getContainer().getTableCache().getChildrenCache(object.getParentObject());
     }
 
     @Override
-    public boolean canEditObject(AltibaseO2ATableColumn object) {
-        return true;
+    public boolean canCreateObject(Object container) {
+        return container instanceof AltibaseTable && GenericUtils.canAlterTable((AltibaseTable) container);
     }
 
     @Override
-    protected AltibaseO2ATableColumn createDatabaseObject(DBRProgressMonitor monitor, DBECommandContext context, Object container, Object copyFrom, Map<String, Object> options) throws DBException
-    {
-        AltibaseO2ATableBase table = (AltibaseO2ATableBase) container;
+    public boolean canEditObject(AltibaseTableColumn object) {
+        return GenericUtils.canAlterTable(object);
+    }
 
-        DBSDataType columnType = findBestDataType(table, "varchar2"); //$NON-NLS-1$
+    @Override
+    public boolean canDeleteObject(AltibaseTableColumn object) {
+        return GenericUtils.canAlterTable(object);
+    }
 
-        final AltibaseO2ATableColumn column = new AltibaseO2ATableColumn(table);
-        column.setName(getNewColumnName(monitor, context, table));
-        column.setDataType((AltibaseO2ADataType) columnType);
-        column.setTypeName(columnType == null ? "INTEGER" : columnType.getName()); //$NON-NLS-1$
-        column.setMaxLength(columnType != null && columnType.getDataKind() == DBPDataKind.STRING ? 100 : 0);
-        column.setValueType(columnType == null ? Types.INTEGER : columnType.getTypeID());
-        column.setOrdinalPosition(-1);
+    @Override
+    protected AltibaseTableColumn createDatabaseObject(DBRProgressMonitor monitor, DBECommandContext context, Object container, Object copyFrom, Map<String, Object> options) throws DBException {
+        AltibaseTableBase tableBase = (AltibaseTableBase) container;
+        DBSDataType columnType = findBestDataType(tableBase, DBConstants.DEFAULT_DATATYPE_NAMES);
+
+        int columnSize = columnType != null && columnType.getDataKind() == DBPDataKind.STRING ? 100 : 0;
+        AltibaseTableColumn column = tableBase.getDataSource().getMetaModel().createTableColumnImpl(
+            monitor,
+            null,
+            tableBase,
+            getNewColumnName(monitor, context, tableBase),
+            columnType == null ? "INTEGER" : columnType.getName(),
+            columnType == null ? Types.INTEGER : columnType.getTypeID(),
+            columnType == null ? Types.INTEGER : columnType.getTypeID(),
+            -1,
+            columnSize,
+            columnSize,
+            null,
+            null,
+            10,
+            false,
+            null,
+            null,
+            false,
+            false
+        );
+        column.setPersisted(false);
         return column;
     }
 
     @Override
-    protected void addObjectCreateActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, ObjectCreateCommand command, Map<String, Object> options) {
-        super.addObjectCreateActions(monitor, executionContext, actions, command, options);
-        if (command.getProperty("comment") != null) {
-            addColumnCommentAction(actions, command.getObject(), command.getObject().getParentObject());
+    public StringBuilder getNestedDeclaration(DBRProgressMonitor monitor, AltibaseTableBase owner, DBECommandAbstract<AltibaseTableColumn> command, Map<String, Object> options) {
+        StringBuilder decl = super.getNestedDeclaration(monitor, owner, command, options);
+        addIncrementClauseToNestedDeclaration(command, decl);
+        return decl;
+    }
+
+    public void addIncrementClauseToNestedDeclaration(DBECommandAbstract<AltibaseTableColumn> command, StringBuilder decl) {
+        final AltibaseTableColumn column = command.getObject();
+        if (column.isAutoIncrement()) {
+            final String autoIncrementClause = column.getDataSource().getMetaModel().getAutoIncrementClause(column);
+            if (autoIncrementClause != null && !autoIncrementClause.isEmpty()) {
+                decl.append(" ").append(autoIncrementClause); //$NON-NLS-1$
+            }
         }
     }
 
     @Override
-    protected void addObjectModifyActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actionList, ObjectChangeCommand command, Map<String, Object> options)
-    {
-        final AltibaseO2ATableColumn column = command.getObject();
-        boolean hasComment = command.getProperty("comment") != null;
-        if (!hasComment || command.getProperties().size() > 1) {
-            actionList.add(new SQLDatabasePersistAction(
-                "Modify column",
-                "ALTER TABLE " + column.getTable().getFullyQualifiedName(DBPEvaluationContext.DDL) + //$NON-NLS-1$
-                " MODIFY " + getNestedDeclaration(monitor, column.getTable(), command, options))); //$NON-NLS-1$
+    protected ColumnModifier[] getSupportedModifiers(AltibaseTableColumn column, Map<String, Object> options) {
+        // According to SQL92 DEFAULT comes before constraints
+        AltibaseMetaModel metaModel = column.getDataSource().getMetaModel();
+        if (!metaModel.supportsNotNullColumnModifiers(column)) {
+            return new ColumnModifier[]{
+                DataTypeModifier,
+                DefaultModifier
+            };
+        } else {
+            return new ColumnModifier[]{
+                DataTypeModifier,
+                DefaultModifier,
+                metaModel.isColumnNotNullByDefault() ? NullNotNullModifier : NotNullModifier
+            };
         }
-        if (hasComment) {
+    }
+
+    @Override
+    protected long getDDLFeatures(AltibaseTableColumn object) {
+        long features = 0;
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
+            features |= DDL_FEATURE_OMIT_COLUMN_CLAUSE_IN_DROP;
+        }
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
+            features |= DDL_FEATURE_USER_BRACKETS_IN_DROP;
+        }
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
+            features |= FEATURE_ALTER_TABLE_ADD_COLUMN;
+        }
+        return features;
+    }
+
+    @Override
+    protected void addObjectModifyActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actionList, ObjectChangeCommand command, Map<String, Object> options) throws DBException {
+        AltibaseTableColumn column = command.getObject();
+        // Add more or less standard COMMENT ON if comment was actually edited (i.e. it is editable at least).
+        if (command.hasProperty(DBConstants.PROP_ID_DESCRIPTION)) {
             addColumnCommentAction(actionList, column, column.getTable());
         }
-    }
-
-    @Override
-    public void renameObject(@NotNull DBECommandContext commandContext, @NotNull AltibaseO2ATableColumn object, @NotNull Map<String, Object> options, @NotNull String newName) throws DBException {
-        processObjectRename(commandContext, object, options, newName);
-    }
-
-    @Override
-    protected void addObjectRenameActions(DBRProgressMonitor monitor, DBCExecutionContext executionContext, List<DBEPersistAction> actions, ObjectRenameCommand command, Map<String, Object> options)
-    {
-        final AltibaseO2ATableColumn column = command.getObject();
-
-        actions.add(
-            new SQLDatabasePersistAction(
-                "Rename column",
-                "ALTER TABLE " + column.getTable().getFullyQualifiedName(DBPEvaluationContext.DDL) + " RENAME COLUMN " +
-                    DBUtils.getQuotedIdentifier(column.getDataSource(), command.getOldName()) + " TO " +
-                    DBUtils.getQuotedIdentifier(column.getDataSource(), command.getNewName()))
-        );
     }
 
 }

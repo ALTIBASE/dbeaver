@@ -21,8 +21,8 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaModelForeignKeyFetcher;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModelForeignKeyFetcher;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
@@ -46,17 +46,17 @@ import java.util.*;
 /**
 * Foreign key cache
 */
-class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, GenericTableBase, GenericTableForeignKey, GenericTableForeignKeyColumnTable> {
+class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, AltibaseTableBase, AltibaseTableForeignKey, AltibaseTableForeignKeyColumnTable> {
 
-    private final Map<String, GenericUniqueKey> pkMap = new HashMap<>();
-    private final GenericMetaObject foreignKeyObject;
+    private final Map<String, AltibaseUniqueKey> pkMap = new HashMap<>();
+    private final AltibaseMetaObject foreignKeyObject;
     private int fkIndex;
 
     ForeignKeysCache(TableCache tableCache)
     {
         super(
             tableCache,
-            GenericTableBase.class,
+            AltibaseTableBase.class,
             GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FKTABLE_NAME),
             GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FK_NAME));
         foreignKeyObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_FOREIGN_KEY);
@@ -72,7 +72,7 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
 
     @NotNull
     @Override
-    protected JDBCStatement prepareObjectsStatement(JDBCSession session, GenericStructContainer owner, GenericTableBase forParent)
+    protected JDBCStatement prepareObjectsStatement(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase forParent)
         throws SQLException
     {
         return owner.getDataSource().getMetaModel().prepareForeignKeysLoadStatement(session, owner, forParent);
@@ -80,7 +80,7 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
 
     @Nullable
     @Override
-    protected GenericTableForeignKey fetchObject(JDBCSession session, GenericStructContainer owner, GenericTableBase parent, String fkName, JDBCResultSet dbResult)
+    protected AltibaseTableForeignKey fetchObject(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase parent, String fkName, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         String pkTableCatalog = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_CAT);
@@ -98,8 +98,8 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
 
         AltibaseMetaModel metaModel = owner.getDataSource().getMetaModel();
 
-        if (metaModel instanceof GenericMetaModelForeignKeyFetcher) {
-            GenericMetaModelForeignKeyFetcher foreignKeyFetcher = (GenericMetaModelForeignKeyFetcher) metaModel;
+        if (metaModel instanceof AltibaseMetaModelForeignKeyFetcher) {
+            AltibaseMetaModelForeignKeyFetcher foreignKeyFetcher = (AltibaseMetaModelForeignKeyFetcher) metaModel;
             deleteRule = foreignKeyFetcher.fetchDeleteRule(foreignKeyObject, dbResult);
             updateRule = foreignKeyFetcher.fetchUpdateRule(foreignKeyObject, dbResult);
             deferability = foreignKeyFetcher.fetchDeferability(foreignKeyObject, dbResult);
@@ -123,7 +123,7 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
             return null;
         }
         String pkTableFullName = DBUtils.getSimpleQualifiedName(pkTableCatalog, pkTableSchema, pkTableName);
-        GenericTableBase pkTable = parent.getDataSource().findTable(session.getProgressMonitor(), pkTableCatalog, pkTableSchema, pkTableName);
+        AltibaseTableBase pkTable = parent.getDataSource().findTable(session.getProgressMonitor(), pkTableCatalog, pkTableSchema, pkTableName);
         if (pkTable == null) {
             // Try to use FK catalog/schema
             pkTable = parent.getDataSource().findTable(session.getProgressMonitor(), fkTableCatalog, fkTableSchema, pkTableName);
@@ -145,15 +145,15 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
         }
         if (pk == null) {
             String pkColumnName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
-            GenericTableColumn pkColumn = pkTable.getAttribute(session.getProgressMonitor(), pkColumnName);
+            AltibaseTableColumn pkColumn = pkTable.getAttribute(session.getProgressMonitor(), pkColumnName);
             if (pkColumn == null) {
                 log.warn("Can't find PK table " + pkTable.getFullyQualifiedName(DBPEvaluationContext.DDL) + " column " + pkColumnName);
                 return null;
             }
 
-            Collection<GenericUniqueKey> uniqueKeys = pkTable.getConstraints(session.getProgressMonitor());
+            Collection<AltibaseUniqueKey> uniqueKeys = pkTable.getConstraints(session.getProgressMonitor());
             if (uniqueKeys != null) {
-                for (GenericUniqueKey pkConstraint : uniqueKeys) {
+                for (AltibaseUniqueKey pkConstraint : uniqueKeys) {
                     if (pkConstraint.getConstraintType().isUnique() && DBUtils.getConstraintAttribute(session.getProgressMonitor(), pkConstraint, pkColumn) != null) {
                         pk = pkConstraint;
                         break;
@@ -162,9 +162,9 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
             }
             if (pk == null) {
                 // No PK. Let's try unique indexes
-                Collection<? extends GenericTableIndex> indexes = pkTable.getIndexes(session.getProgressMonitor());
+                Collection<? extends AltibaseTableIndex> indexes = pkTable.getIndexes(session.getProgressMonitor());
                 if (indexes != null) {
-                    for (GenericTableIndex index : indexes) {
+                    for (AltibaseTableIndex index : indexes) {
                         if (index.isUnique() && DBUtils.getConstraintAttribute(session.getProgressMonitor(), index, pkColumn) != null) {
                             pk = index;
                             break;
@@ -174,7 +174,7 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
             }
             if (pk == null) {
                 log.warn("Can't find unique key for table " + pkTable.getFullyQualifiedName(DBPEvaluationContext.DDL) + " column " + pkColumn.getName() + ". Making fake one.");
-                GenericUniqueKey fakePk;
+                AltibaseUniqueKey fakePk;
                 // Too bad. But we have to create new fake PK for this FK
                 if (pkName == null) {
                     pkName = "primary_key";
@@ -187,7 +187,7 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
                     // Add this fake constraint to it's owner
                     fakePk.getTable().addUniqueKey(fakePk);
                 }
-                fakePk.addColumn(new GenericTableConstraintColumn(fakePk, pkColumn, keySeq));
+                fakePk.addColumn(new AltibaseTableConstraintColumn(fakePk, pkColumn, keySeq));
                 pk = fakePk;
             }
         }
@@ -200,9 +200,9 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
 
     @Nullable
     @Override
-    protected GenericTableForeignKeyColumnTable[] fetchObjectRow(
+    protected AltibaseTableForeignKeyColumnTable[] fetchObjectRow(
         JDBCSession session,
-        GenericTableBase parent, GenericTableForeignKey foreignKey, JDBCResultSet dbResult)
+        AltibaseTableBase parent, AltibaseTableForeignKey foreignKey, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         String pkColumnName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
@@ -226,18 +226,18 @@ class ForeignKeysCache extends JDBCCompositeCache<GenericStructContainer, Generi
             log.warn("Empty FK column for table " + foreignKey.getTable().getFullyQualifiedName(DBPEvaluationContext.DDL) + " PK column " + pkColumnName);
             return null;
         }
-        GenericTableColumn fkColumn = foreignKey.getTable().getAttribute(session.getProgressMonitor(), fkColumnName);
+        AltibaseTableColumn fkColumn = foreignKey.getTable().getAttribute(session.getProgressMonitor(), fkColumnName);
         if (fkColumn == null) {
             log.warn("Can't find FK table " + foreignKey.getTable().getFullyQualifiedName(DBPEvaluationContext.DDL) + " column " + fkColumnName);
             return null;
         }
 
-        return new GenericTableForeignKeyColumnTable[] {
-            new GenericTableForeignKeyColumnTable(foreignKey, fkColumn, keySeq, (GenericTableColumn)pkColumn.getAttribute()) };
+        return new AltibaseTableForeignKeyColumnTable[] {
+            new AltibaseTableForeignKeyColumnTable(foreignKey, fkColumn, keySeq, (AltibaseTableColumn)pkColumn.getAttribute()) };
     }
 
     @Override
-    protected void cacheChildren(DBRProgressMonitor monitor, GenericTableForeignKey foreignKey, List<GenericTableForeignKeyColumnTable> rows)
+    protected void cacheChildren(DBRProgressMonitor monitor, AltibaseTableForeignKey foreignKey, List<AltibaseTableForeignKeyColumnTable> rows)
     {
         foreignKey.setColumns(monitor, rows);
         fkIndex = 1;

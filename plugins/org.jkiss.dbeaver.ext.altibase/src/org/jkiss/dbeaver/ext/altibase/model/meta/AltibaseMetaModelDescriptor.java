@@ -38,7 +38,7 @@ public class AltibaseMetaModelDescriptor extends AbstractDescriptor {
     private AltibaseMetaModel instance;
 
     private String id;
-    private final Map<String, GenericMetaObject> objects = new HashMap<>();
+    private final Map<String, AltibaseMetaObject> objects = new HashMap<>();
     private String[] driverClass;
     private final String dialectId;
     private List<String> modelReplacements;
@@ -59,7 +59,7 @@ public class AltibaseMetaModelDescriptor extends AbstractDescriptor {
         IConfigurationElement[] objectList = cfg.getChildren("object");
         if (!ArrayUtils.isEmpty(objectList)) {
             for (IConfigurationElement childConfig : objectList) {
-                GenericMetaObject metaObject = new GenericMetaObject(childConfig);
+                AltibaseMetaObject metaObject = new AltibaseMetaObject(childConfig);
                 objects.put(metaObject.getType(), metaObject);
             }
         }
@@ -93,7 +93,7 @@ public class AltibaseMetaModelDescriptor extends AbstractDescriptor {
         return driverClass;
     }
 
-    public GenericMetaObject getObject(String id)
+    public AltibaseMetaObject getObject(String id)
     {
         return objects.get(id);
     }

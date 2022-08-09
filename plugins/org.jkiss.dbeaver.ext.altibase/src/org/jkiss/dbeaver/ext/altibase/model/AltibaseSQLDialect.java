@@ -83,7 +83,7 @@ public class AltibaseSQLDialect extends JDBCSQLDialect {
         this.hasDelimiterAfterQuery = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SQL_DELIMITER_AFTER_QUERY));
         this.hasDelimiterAfterBlock = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SQL_DELIMITER_AFTER_BLOCK));
         this.legacySQLDialect = CommonUtils.toBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_LEGACY_DIALECT));
-        this.supportsUpsert = ((GenericDataSource)dataSource).getMetaModel().supportsUpsertStatement();
+        this.supportsUpsert = ((AltibaseDataSource)dataSource).getMetaModel().supportsUpsertStatement();
         if (this.supportsUpsert) {
             addSQLKeyword("UPSERT");
         }

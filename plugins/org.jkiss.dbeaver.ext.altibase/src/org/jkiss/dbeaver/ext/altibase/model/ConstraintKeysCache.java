@@ -20,7 +20,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCStatement;
@@ -35,15 +35,15 @@ import java.util.Locale;
 /**
  * Index cache implementation
  */
-class ConstraintKeysCache extends JDBCCompositeCache<GenericStructContainer, GenericTableBase, GenericUniqueKey, GenericTableConstraintColumn> {
+class ConstraintKeysCache extends JDBCCompositeCache<AltibaseStructContainer, AltibaseTableBase, AltibaseUniqueKey, AltibaseTableConstraintColumn> {
 
-    private final GenericMetaObject pkObject;
+    private final AltibaseMetaObject pkObject;
 
     ConstraintKeysCache(TableCache tableCache)
     {
         super(
             tableCache,
-            GenericTableBase.class,
+            AltibaseTableBase.class,
             GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_PRIMARY_KEY, JDBCConstants.TABLE_NAME),
             GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_PRIMARY_KEY, JDBCConstants.PK_NAME));
         pkObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_PRIMARY_KEY);
@@ -51,7 +51,7 @@ class ConstraintKeysCache extends JDBCCompositeCache<GenericStructContainer, Gen
 
     @NotNull
     @Override
-    protected JDBCStatement prepareObjectsStatement(JDBCSession session, GenericStructContainer owner, GenericTableBase forParent)
+    protected JDBCStatement prepareObjectsStatement(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase forParent)
         throws SQLException
     {
         try {
@@ -77,7 +77,7 @@ class ConstraintKeysCache extends JDBCCompositeCache<GenericStructContainer, Gen
 
     @Nullable
     @Override
-    protected GenericUniqueKey fetchObject(JDBCSession session, GenericStructContainer owner, GenericTableBase parent, String pkName, JDBCResultSet dbResult)
+    protected AltibaseUniqueKey fetchObject(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase parent, String pkName, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         return owner.getDataSource().getMetaModel().createConstraintImpl(
@@ -90,16 +90,16 @@ class ConstraintKeysCache extends JDBCCompositeCache<GenericStructContainer, Gen
 
     @Nullable
     @Override
-    protected GenericTableConstraintColumn[] fetchObjectRow(
+    protected AltibaseTableConstraintColumn[] fetchObjectRow(
         JDBCSession session,
-        GenericTableBase parent, GenericUniqueKey object, JDBCResultSet dbResult)
+        AltibaseTableBase parent, AltibaseUniqueKey object, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         return parent.getDataSource().getMetaModel().createConstraintColumnsImpl(session, parent, object, pkObject, dbResult);
     }
 
     @Override
-    protected void cacheChildren(DBRProgressMonitor monitor, GenericUniqueKey primaryKey, List<GenericTableConstraintColumn> rows)
+    protected void cacheChildren(DBRProgressMonitor monitor, AltibaseUniqueKey primaryKey, List<AltibaseTableConstraintColumn> rows)
     {
         primaryKey.setColumns(rows);
     }

@@ -17,7 +17,7 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCConstants;
 
@@ -39,7 +39,7 @@ public class ForeignKeyInfo {
     String pkName;
     int deferabilityNum;
 
-    public void fetchColumnsInfo (GenericMetaObject fkObject, @NotNull JDBCResultSet dbResult) {
+    public void fetchColumnsInfo (AltibaseMetaObject fkObject, @NotNull JDBCResultSet dbResult) {
         pkColumnName = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
         fkTableCatalog = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_CAT);
         fkTableSchema = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_SCHEM);

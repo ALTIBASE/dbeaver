@@ -57,8 +57,7 @@ import java.sql.Types;
 import java.util.*;
 
 /**
- * Generic meta model
- * -> Altibase meta model
+ * Altibase meta model
  */
 public class AltibaseMetaModel {
 
@@ -70,10 +69,11 @@ public class AltibaseMetaModel {
     // in DatabaseMetaData.getTables method (PostgreSQL especially)
     private static final Set<String> INVALID_TABLE_TYPES = new HashSet<>();
     
-    //public static boolean DBMS_METADATA = false;
+    public static boolean DBMS_METADATA = true;
 
     static {
     	INVALID_TABLE_TYPES.add("SEQUENCE");
+    	INVALID_TABLE_TYPES.add("QUEUE");
     }
 
 
@@ -83,25 +83,25 @@ public class AltibaseMetaModel {
     {
     }
 
-    public GenericMetaObject getMetaObject(String id) {
+    public AltibaseMetaObject getMetaObject(String id) {
         return descriptor == null ? null : descriptor.getObject(id);
     }
 
     //////////////////////////////////////////////////////
     // Datasource
 
-    public GenericDataSource createDataSourceImpl(DBRProgressMonitor monitor, DBPDataSourceContainer container) throws DBException {
-        return new GenericDataSource(monitor, container, this, new AltibaseSQLDialect());
+    public AltibaseDataSource createDataSourceImpl(DBRProgressMonitor monitor, DBPDataSourceContainer container) throws DBException {
+        return new AltibaseDataSource(monitor, container, this, new AltibaseSQLDialect());
     }
 
     //////////////////////////////////////////////////////
     // Misc
 
-    public JDBCBasicDataTypeCache<GenericStructContainer, ? extends JDBCDataType> createDataTypeCache(@NotNull GenericStructContainer container) {
-        return new GenericDataTypeCache(container);
+    public JDBCBasicDataTypeCache<AltibaseStructContainer, ? extends JDBCDataType> createDataTypeCache(@NotNull AltibaseStructContainer container) {
+        return new AltibaseDataTypeCache(container);
     }
 
-    public DBCQueryPlanner getQueryPlanner(@NotNull GenericDataSource dataSource) {
+    public DBCQueryPlanner getQueryPlanner(@NotNull AltibaseDataSource dataSource) {
         return null;
     }
 
@@ -117,7 +117,7 @@ public class AltibaseMetaModel {
      * Returns SQL clause for table column auto-increment.
      * Null if auto-increment is not supported.
      */
-    public String getAutoIncrementClause(GenericTableColumn column) {
+    public String getAutoIncrementClause(AltibaseTableColumn column) {
         return null;
     }
 
@@ -134,12 +134,12 @@ public class AltibaseMetaModel {
         return false;
     }
 
-    public boolean isSystemSchema(GenericSchema schema) {
+    public boolean isSystemSchema(AltibaseSchema schema) {
         //return (schema.getName().equalsIgnoreCase("SYSTEM_"));
     	return false;
     }
 
-    public List<GenericSchema> loadSchemas(JDBCSession session, GenericDataSource dataSource, GenericCatalog catalog)
+    public List<AltibaseSchema> loadSchemas(JDBCSession session, AltibaseDataSource dataSource, AltibaseCatalog catalog)
         throws DBException
     {
     	//DBMS_METADATA = hasDbmsMetadataPacakge(session);
@@ -149,9 +149,9 @@ public class AltibaseMetaModel {
         }
 
         try {
-            final GenericMetaObject schemaObject = getMetaObject(AltibaseConstants.OBJECT_SCHEMA);
+            final AltibaseMetaObject schemaObject = getMetaObject(AltibaseConstants.OBJECT_SCHEMA);
 
-            final List<GenericSchema> tmpSchemas = new ArrayList<>();
+            final List<AltibaseSchema> tmpSchemas = new ArrayList<>();
             JDBCResultSet dbResult = null;
             boolean catalogSchemas = false, schemasFiltered = false;
 			
@@ -181,7 +181,7 @@ public class AltibaseMetaModel {
                         continue;
                     }
 
-                    GenericSchema schema = createSchemaImpl(dataSource, catalog, schemaName);
+                    AltibaseSchema schema = createSchemaImpl(dataSource, catalog, schemaName);
                     if (nullSchema) {
                         schema.setVirtual(true);
                     }
@@ -225,22 +225,22 @@ public class AltibaseMetaModel {
         return false;
     }
 
-    public GenericSchema createSchemaImpl(@NotNull GenericDataSource dataSource, @Nullable GenericCatalog catalog, @NotNull String schemaName) throws DBException {
-        return new GenericSchema(dataSource, catalog, schemaName);
+    public AltibaseSchema createSchemaImpl(@NotNull AltibaseDataSource dataSource, @Nullable AltibaseCatalog catalog, @NotNull String schemaName) throws DBException {
+        return new AltibaseSchema(dataSource, catalog, schemaName);
     }
 
     //////////////////////////////////////////////////////
     // Procedure load
 
-    public void loadProcedures(DBRProgressMonitor monitor, @NotNull GenericObjectContainer container)
+    public void loadProcedures(DBRProgressMonitor monitor, @NotNull AltibaseObjectContainer container)
         throws DBException
     {
-        Map<String, GenericPackage> packageMap = null;
+        Map<String, AltibasePackage> packageMap = null;
 
-        Map<String, GenericProcedure> funcMap = new LinkedHashMap<>();
+        Map<String, AltibaseProcedure> funcMap = new LinkedHashMap<>();
 
-        GenericDataSource dataSource = container.getDataSource();
-        GenericMetaObject procObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
+        AltibaseDataSource dataSource = container.getDataSource();
+        AltibaseMetaObject procObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load procedures")) {
             boolean supportsFunctions = false;
             /*
@@ -323,6 +323,7 @@ public class AltibaseMetaModel {
                                 break;
                             }
                             String procedureCatalog = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_CAT);
+                            String procedureSchema = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_SCHEM);
                             String procedureName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_NAME);
                             String specificName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.SPECIFIC_NAME);
                             int procTypeNum = GenericUtils.safeGetInt(procObject, dbResult, JDBCConstants.PROCEDURE_TYPE);
@@ -345,7 +346,7 @@ public class AltibaseMetaModel {
                             if (CommonUtils.isEmpty(specificName)) {
                                 specificName = procedureName;
                             }
-                            GenericProcedure function = funcMap.get(specificName);
+                            AltibaseProcedure function = funcMap.get(specificName);
                             if (function != null) {
                                 // Broken driver
                                 log.debug("Broken driver [" + session.getDataSource().getContainer().getDriver().getName() + "] - returns the same list for getProcedures and getFunctons");
@@ -353,7 +354,7 @@ public class AltibaseMetaModel {
                             }
                             procedureName = GenericUtils.normalizeProcedureName(procedureName);
 
-                            GenericPackage procedurePackage = null;
+                            AltibasePackage procedurePackage = null;
                             // FIXME: remove as a silly workaround
                             String packageName = getPackageName(dataSource, procedureCatalog, procedureName, specificName);
                             if (packageName != null) {
@@ -363,14 +364,14 @@ public class AltibaseMetaModel {
                                     }
                                     procedurePackage = packageMap.get(packageName);
                                     if (procedurePackage == null) {
-                                        procedurePackage = new GenericPackage(container, packageName, true);
+                                        procedurePackage = new AltibasePackage(container, packageName, true);
                                         packageMap.put(packageName, procedurePackage);
                                         container.addPackage(procedurePackage);
                                     }
                                 }
                             }
 
-                            final GenericProcedure procedure = createProcedureImpl(
+                            final AltibaseProcedure procedure = createProcedureImpl(
                                     procedurePackage != null ? procedurePackage : container,
                                     procedureName,
                                     specificName,
@@ -394,15 +395,15 @@ public class AltibaseMetaModel {
         }
     }
 
-    public GenericProcedure createProcedureImpl(
-        GenericStructContainer container,
+    public AltibaseProcedure createProcedureImpl(
+        AltibaseStructContainer container,
         String procedureName,
         String specificName,
         String remarks,
         DBSProcedureType procedureType,
-        GenericFunctionResultType functionResultType)
+        AltibaseFunctionResultType functionResultType)
     {
-        return new GenericProcedure(
+        return new AltibaseProcedure(
             container,
             procedureName,
             specificName,
@@ -411,61 +412,14 @@ public class AltibaseMetaModel {
             functionResultType);
     }
 
-    public String getProcedureDDL(DBRProgressMonitor monitor, GenericProcedure sourceObject) throws DBException {
-    	/*
-    	StringBuilder ddl = new StringBuilder();
-    	String content = null;
-    	boolean hasDDL = false;
-    	JDBCPreparedStatement dbContent = null;
-    	GenericMetaObject procObject = getMetaObject(AltibaseGenericConstants.OBJECT_PROCEDURE);
-
-    	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get procedure DDL")) {
-    		dbContent = session.prepareStatement(
-    				"SELECT "
-    						+ " parse "
-    						+ " FROM "
-    						+ " SYSTEM_.SYS_PROC_PARSE_ PP, SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_PROCEDURES_ P"
-    						+ " WHERE"
-    						+ " U.USER_NAME = ?"
-    						+ " AND P.PROC_NAME = ?"
-    						+ " AND PP.USER_ID = U.USER_ID"
-    						+ " AND PP.PROC_OID = P.PROC_OID"
-    						+ " ORDER BY SEQ_NO ASC");
-    		dbContent.setString(1, sourceObject.getSchema().getName());
-    		dbContent.setString(2, sourceObject.getName());
-
-    		JDBCResultSet dbResult = dbContent.executeQuery();
-    		while (dbResult.next()) {
-    			if (monitor.isCanceled()) {
-    				break;
-    			}
-
-    			if (hasDDL == true) {
-                	ddl.append(StringUtil.NEW_LINE);
-                }
-                else {
-                	hasDDL = true;
-                }
-                	
-                content = GenericUtils.safeGetStringTrimmed(procObject, dbResult, "PARSE");
-                if (content != null) {
-                	ddl.append(content);
-                }
-            }
-    	} catch (Exception e)
-    	{
-    		log.warn("Can't read procedure DDL", e);
-    	}
-    	finally
-    	{
-    		dbContent.close();
-    	}
-        */
+    public String getProcedureDDL(DBRProgressMonitor monitor, AltibaseProcedure sourceObject) throws DBException {
     	String ddl = null;
-
-    	if (hasDbmsMetadataPacakge(monitor, sourceObject)) {
-    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), "PROCEDURE");
-    	} else {
+    	
+    	if (DBMS_METADATA) {
+    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), sourceObject.getProcedureType().name());
+    	}
+    	
+    	if (!DBMS_METADATA || StringUtil.isEmpty(ddl)) {
 	    	String sql = "SELECT "
 	    			+ " parse "
 	    			+ " FROM "
@@ -482,7 +436,7 @@ public class AltibaseMetaModel {
         return (ddl.length() < 1)? "-- Source code not available":ddl.toString();
     }
 
-    public String getPackageName(GenericDataSource dataSource, String catalogName, String procedureName, String specificName) {
+    public String getPackageName(AltibaseDataSource dataSource, String catalogName, String procedureName, String specificName) {
 
         // Caused problems in #6241. Probably we should remove it (for now getPackageName always returns null so it is disabled anyway)
         if (!CommonUtils.isEmpty(catalogName) && CommonUtils.isEmpty(dataSource.getCatalogs())) {
@@ -515,8 +469,8 @@ public class AltibaseMetaModel {
         return true;
     }
 
-    public GenericCatalog createCatalogImpl(@NotNull GenericDataSource dataSource, @NotNull String catalogName) {
-        return new GenericCatalog(dataSource, catalogName);
+    public AltibaseCatalog createCatalogImpl(@NotNull AltibaseDataSource dataSource, @NotNull String catalogName) {
+        return new AltibaseCatalog(dataSource, catalogName);
     }
 
     //////////////////////////////////////////////////////
@@ -543,12 +497,12 @@ public class AltibaseMetaModel {
      *                  "SYSTEM", "USER", "DERIVED". (may be <code>null</code>)
      *  </OL>
      */
-    public JDBCStatement prepareTableLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTableBase object, @Nullable String objectName)
+    public JDBCStatement prepareTableLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @Nullable AltibaseTableBase object, @Nullable String objectName)
         throws SQLException
     {
         String tableNamePattern;
         if (object == null && objectName == null) {
-            final DBSObjectFilter tableFilters = session.getDataSource().getContainer().getObjectFilter(GenericTable.class, owner, false);
+            final DBSObjectFilter tableFilters = session.getDataSource().getContainer().getObjectFilter(AltibaseTable.class, owner, false);
 
             if (tableFilters != null && tableFilters.hasSingleMask()) {
                 tableNamePattern = tableFilters.getSingleMask();
@@ -569,7 +523,7 @@ public class AltibaseMetaModel {
             null).getSourceStatement();
     }
 
-    public GenericTableBase createTableImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @NotNull GenericMetaObject tableObject, @NotNull JDBCResultSet dbResult) {
+    public AltibaseTableBase createTableImpl(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @NotNull AltibaseMetaObject tableObject, @NotNull JDBCResultSet dbResult) {
         String tableName = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_NAME);
         String tableType = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_TYPE);
 
@@ -593,7 +547,7 @@ public class AltibaseMetaModel {
             // Wrong schema - this may happen with virtual schemas
             return null;
         }
-        GenericTableBase table = this.createTableImpl(
+        AltibaseTableBase table = this.createTableImpl(
             owner,
             tableName,
             tableType,
@@ -609,33 +563,35 @@ public class AltibaseMetaModel {
         return table;
     }
 
-    public GenericTableBase createTableImpl(
-        GenericStructContainer container,
+    public AltibaseTableBase createTableImpl(
+        AltibaseStructContainer container,
         @Nullable String tableName,
         @Nullable String tableType,
         @Nullable JDBCResultSet dbResult)
     {
         if (tableType != null && isView(tableType)) {
-            return new GenericView(
+            return new AltibaseView(
                 container,
                 tableName,
                 tableType,
                 dbResult);
         }
 
-        return new GenericTable(
+        return new AltibaseTable(
             container,
             tableName,
             tableType,
             dbResult);
     }
 
-    public String getViewDDL(DBRProgressMonitor monitor, GenericView sourceObject, Map<String, Object> options) throws DBException {
+    public String getViewDDL(DBRProgressMonitor monitor, AltibaseView sourceObject, Map<String, Object> options) throws DBException {
     	String ddl = null;
-    	
-    	if (hasDbmsMetadataPacakge(monitor, sourceObject)) {
+
+    	if (DBMS_METADATA) {
     		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), sourceObject.getTableType());
-    	} else {
+    	}
+    	
+    	if (!DBMS_METADATA || StringUtil.isEmpty(ddl)) {
 	    	String sql = "SELECT "
 					+ " parse "
 					+ " FROM "
@@ -654,11 +610,21 @@ public class AltibaseMetaModel {
         return (ddl.length() < 1)? "-- View definition not available":ddl.toString();
     }
     
-    public String getTableDDL(DBRProgressMonitor monitor, GenericTableBase sourceObject, Map<String, Object> options) throws DBException {
-        return DBStructUtils.generateTableDDL(monitor, sourceObject, options, false);
+    public String getTableDDL(DBRProgressMonitor monitor, AltibaseTableBase sourceObject, Map<String, Object> options) throws DBException {
+    	String ddl = null;
+    	
+    	if (DBMS_METADATA) {
+    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchemaName(), sourceObject.getTableType());
+    	}
+    	
+    	if (!DBMS_METADATA || StringUtil.isEmpty(ddl)) {
+    		ddl = DBStructUtils.generateTableDDL(monitor, sourceObject, options, false);
+    	}
+    	
+        return ddl;
     }
 
-    public boolean supportsTableDDLSplit(GenericTableBase sourceObject) {
+    public boolean supportsTableDDLSplit(AltibaseTableBase sourceObject) {
         return true;
     }
 
@@ -668,7 +634,7 @@ public class AltibaseMetaModel {
         return true;
     }
 
-    public boolean isSystemTable(GenericTableBase table) {
+    public boolean isSystemTable(AltibaseTableBase table) {
         final String tableType = table.getTableType().toUpperCase(Locale.ENGLISH);
         return tableType.contains("SYSTEM");
     }
@@ -680,7 +646,7 @@ public class AltibaseMetaModel {
     //////////////////////////////////////////////////////
     // Table columns
 
-    public JDBCStatement prepareTableColumnLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTableBase forTable) throws SQLException {
+    public JDBCStatement prepareTableColumnLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @Nullable AltibaseTableBase forTable) throws SQLException {
         return session.getMetaData().getColumns(
             owner.getCatalog() == null ? null : owner.getCatalog().getName(),
             owner.getSchema() == null || DBUtils.isVirtualObject(owner.getSchema()) ? null : JDBCUtils.escapeWildCards(session, owner.getSchema().getName()),
@@ -691,8 +657,8 @@ public class AltibaseMetaModel {
             .getSourceStatement();
     }
 
-    public GenericTableColumn createTableColumnImpl(@NotNull DBRProgressMonitor monitor, @Nullable JDBCResultSet dbResult, @NotNull GenericTableBase table, String columnName, String typeName, int valueType, int sourceType, int ordinalPos, long columnSize, long charLength, Integer scale, Integer precision, int radix, boolean notNull, String remarks, String defaultValue, boolean autoIncrement, boolean autoGenerated) throws DBException {
-        return new GenericTableColumn(table,
+    public AltibaseTableColumn createTableColumnImpl(@NotNull DBRProgressMonitor monitor, @Nullable JDBCResultSet dbResult, @NotNull AltibaseTableBase table, String columnName, String typeName, int valueType, int sourceType, int ordinalPos, long columnSize, long charLength, Integer scale, Integer precision, int radix, boolean notNull, String remarks, String defaultValue, boolean autoIncrement, boolean autoGenerated) throws DBException {
+        return new AltibaseTableColumn(table,
             columnName,
             typeName, valueType, sourceType, ordinalPos,
             columnSize,
@@ -704,7 +670,7 @@ public class AltibaseMetaModel {
     //////////////////////////////////////////////////////
     // Constraints
 
-    public JDBCStatement prepareUniqueConstraintsLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTableBase forParent)
+    public JDBCStatement prepareUniqueConstraintsLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @Nullable AltibaseTableBase forParent)
             throws SQLException, DBException {
         return session.getMetaData().getPrimaryKeys(
             owner.getCatalog() == null ? null : owner.getCatalog().getName(),
@@ -718,11 +684,11 @@ public class AltibaseMetaModel {
     }
 
     @NotNull
-    public GenericTableForeignKey createTableForeignKeyImpl(GenericTableBase table, String name, @Nullable String remarks, DBSEntityReferrer referencedKey, DBSForeignKeyModifyRule deleteRule, DBSForeignKeyModifyRule updateRule, DBSForeignKeyDeferability deferability, boolean persisted) {
-        return new GenericTableForeignKey(table, name, remarks, referencedKey, deleteRule, updateRule, deferability, persisted);
+    public AltibaseTableForeignKey createTableForeignKeyImpl(AltibaseTableBase table, String name, @Nullable String remarks, DBSEntityReferrer referencedKey, DBSForeignKeyModifyRule deleteRule, DBSForeignKeyModifyRule updateRule, DBSForeignKeyDeferability deferability, boolean persisted) {
+        return new AltibaseTableForeignKey(table, name, remarks, referencedKey, deleteRule, updateRule, deferability, persisted);
     }
 
-    public JDBCStatement prepareForeignKeysLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTableBase forParent) throws SQLException {
+    public JDBCStatement prepareForeignKeysLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @Nullable AltibaseTableBase forParent) throws SQLException {
         return session.getMetaData().getImportedKeys(
                 owner.getCatalog() == null ? null : owner.getCatalog().getName(),
                 owner.getSchema() == null || DBUtils.isVirtualObject(owner.getSchema()) ? null : owner.getSchema().getName(),
@@ -755,8 +721,8 @@ public class AltibaseMetaModel {
     //////////////////////////////////////////////////////
     // Indexes
 
-    public GenericTableIndex createIndexImpl(
-        GenericTableBase table,
+    public AltibaseTableIndex createIndexImpl(
+        AltibaseTableBase table,
         boolean nonUnique,
         String qualifier,
         long cardinality,
@@ -764,7 +730,7 @@ public class AltibaseMetaModel {
         DBSIndexType indexType,
         boolean persisted)
     {
-        return new GenericTableIndex(
+        return new AltibaseTableIndex(
             table,
             nonUnique,
             qualifier,
@@ -774,12 +740,12 @@ public class AltibaseMetaModel {
             persisted);
     }
 
-    public GenericUniqueKey createConstraintImpl(GenericTableBase table, String constraintName, DBSEntityConstraintType constraintType, JDBCResultSet dbResult, boolean persisted) {
-        return new GenericUniqueKey(table, constraintName, null, constraintType, persisted);
+    public AltibaseUniqueKey createConstraintImpl(AltibaseTableBase table, String constraintName, DBSEntityConstraintType constraintType, JDBCResultSet dbResult, boolean persisted) {
+        return new AltibaseUniqueKey(table, constraintName, null, constraintType, persisted);
     }
 
-    public GenericTableConstraintColumn[] createConstraintColumnsImpl(JDBCSession session,
-                                                                      GenericTableBase parent, GenericUniqueKey object, GenericMetaObject pkObject, JDBCResultSet dbResult) throws DBException {
+    public AltibaseTableConstraintColumn[] createConstraintColumnsImpl(JDBCSession session,
+                                                                      AltibaseTableBase parent, AltibaseUniqueKey object, AltibaseMetaObject pkObject, JDBCResultSet dbResult) throws DBException {
         String columnName = GenericUtils.safeGetStringTrimmed(pkObject, dbResult, JDBCConstants.COLUMN_NAME);
         if (CommonUtils.isEmpty(columnName)) {
             log.debug("Null primary key column for '" + object.getName() + "'");
@@ -792,24 +758,24 @@ public class AltibaseMetaModel {
         }
         int keySeq = GenericUtils.safeGetInt(pkObject, dbResult, JDBCConstants.KEY_SEQ);
 
-        GenericTableColumn tableColumn = parent.getAttribute(session.getProgressMonitor(), columnName);
+        AltibaseTableColumn tableColumn = parent.getAttribute(session.getProgressMonitor(), columnName);
         if (tableColumn == null) {
             log.warn("Column '" + columnName + "' not found in table '" + parent.getFullyQualifiedName(DBPEvaluationContext.DDL) + "' for PK '" + object.getFullyQualifiedName(DBPEvaluationContext.DDL) + "'");
             return null;
         }
 
-        return new GenericTableConstraintColumn[] {
-                new GenericTableConstraintColumn(object, tableColumn, keySeq) };
+        return new AltibaseTableConstraintColumn[] {
+                new AltibaseTableConstraintColumn(object, tableColumn, keySeq) };
     }
 
     //////////////////////////////////////////////////////
     // Sequences
 
-    public boolean supportsSequences(@NotNull GenericDataSource dataSource) {
+    public boolean supportsSequences(@NotNull AltibaseDataSource dataSource) {
         return true;
     }
 
-    public JDBCStatement prepareSequencesLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
+    public JDBCStatement prepareSequencesLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer container) throws SQLException {
         final JDBCPreparedStatement dbStat = session.prepareStatement(
         		"SELECT"
         				+ " TABLE_NAME, CURRENT_SEQ, START_SEQ, INCREMENT_SEQ, CACHE_SIZE, MAX_SEQ, MIN_SEQ, IS_CYCLE"
@@ -824,7 +790,7 @@ public class AltibaseMetaModel {
         return dbStat;
     }
 
-    public AltibaseSequence createSequenceImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
+    public AltibaseSequence createSequenceImpl(@NotNull JDBCSession session, @NotNull AltibaseStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
         return new AltibaseSequence(container, dbResult);
     }
 
@@ -835,52 +801,52 @@ public class AltibaseMetaModel {
     //////////////////////////////////////////////////////
     // Synonyms
 
-    public boolean supportsSynonyms(@NotNull GenericDataSource dataSource) {
+    public boolean supportsSynonyms(@NotNull AltibaseDataSource dataSource) {
         return false;
     }
 
-    public JDBCStatement prepareSynonymsLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
+    public JDBCStatement prepareSynonymsLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer container) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    public GenericSynonym createSynonymImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
+    public AltibaseSynonym createSynonymImpl(@NotNull JDBCSession session, @NotNull AltibaseStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
         throw new DBCFeatureNotSupportedException();
     }
 
     //////////////////////////////////////////////////////
     // Triggers
 
-    public boolean supportsTriggers(@NotNull GenericDataSource dataSource) {
+    public boolean supportsTriggers(@NotNull AltibaseDataSource dataSource) {
         return false;
     }
 
-    public JDBCStatement prepareTableTriggersLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer genericStructContainer, @Nullable GenericTableBase forParent) throws SQLException {
+    public JDBCStatement prepareTableTriggersLoadStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer genericStructContainer, @Nullable AltibaseTableBase forParent) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    public GenericTrigger createTableTriggerImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer genericStructContainer, @NotNull GenericTableBase genericTableBase, String triggerName, @NotNull JDBCResultSet resultSet) throws DBException {
+    public AltibaseTrigger createTableTriggerImpl(@NotNull JDBCSession session, @NotNull AltibaseStructContainer genericStructContainer, @NotNull AltibaseTableBase genericTableBase, String triggerName, @NotNull JDBCResultSet resultSet) throws DBException {
         throw new DBCFeatureNotSupportedException();
     }
 
     // Container triggers (not supported by default)
 
-    public boolean supportsDatabaseTriggers(@NotNull GenericDataSource dataSource) {
+    public boolean supportsDatabaseTriggers(@NotNull AltibaseDataSource dataSource) {
         return false;
     }
 
-    public JDBCStatement prepareContainerTriggersLoadStatement(@NotNull JDBCSession session, @Nullable GenericStructContainer forParent) throws SQLException {
+    public JDBCStatement prepareContainerTriggersLoadStatement(@NotNull JDBCSession session, @Nullable AltibaseStructContainer forParent) throws SQLException {
         throw new SQLFeatureNotSupportedException();
     }
 
-    public GenericTrigger createContainerTriggerImpl(@NotNull GenericStructContainer container, @NotNull JDBCResultSet resultSet) throws DBException {
+    public AltibaseTrigger createContainerTriggerImpl(@NotNull AltibaseStructContainer container, @NotNull JDBCResultSet resultSet) throws DBException {
         throw new DBCFeatureNotSupportedException();
     }
 
-    public List<? extends GenericTrigger> loadTriggers(DBRProgressMonitor monitor, @NotNull GenericStructContainer container, @Nullable GenericTableBase table) throws DBException {
+    public List<? extends AltibaseTrigger> loadTriggers(DBRProgressMonitor monitor, @NotNull AltibaseStructContainer container, @Nullable AltibaseTableBase table) throws DBException {
         return new ArrayList<>();
     }
 
-    public String getTriggerDDL(@NotNull DBRProgressMonitor monitor, @NotNull GenericTrigger trigger) throws DBException {
+    public String getTriggerDDL(@NotNull DBRProgressMonitor monitor, @NotNull AltibaseTrigger trigger) throws DBException {
         return "-- Source code not available";
     }
 
@@ -914,7 +880,7 @@ public class AltibaseMetaModel {
         return true;
     }
 
-    public boolean supportsViews(@NotNull GenericDataSource dataSource) {
+    public boolean supportsViews(@NotNull AltibaseDataSource dataSource) {
         DBPDataSourceInfo dataSourceInfo = dataSource.getInfo();
         return !(dataSourceInfo instanceof JDBCDataSourceInfo) ||
             ((JDBCDataSourceInfo) dataSourceInfo).supportsViews();
@@ -926,7 +892,7 @@ public class AltibaseMetaModel {
     	boolean hasDDL = false;
     	JDBCPreparedStatement jpstmt = null;
     	JDBCResultSet jrs = null;
-    	GenericMetaObject metaObject = getMetaObject(AltibaseConstants.OBJECT_TABLE);
+    	AltibaseMetaObject metaObject = getMetaObject(AltibaseConstants.OBJECT_TABLE);
 
     	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get DDL from DB")) {
     		jpstmt = session.prepareStatement(sql);
@@ -965,9 +931,8 @@ public class AltibaseMetaModel {
     }
     
     private String getDDLFromDbmsMetadata(DBRProgressMonitor monitor, DBSObject sourceObject, String schemaName, String objectType) {
-    	String ddl = null;
+    	String ddl = "";
     	CallableStatement cstmt = null;
-
     	/* Need to use native CallableStatement
     	 * jcstmt = session.prepareCall("exec ? := dbms_metadata.get_ddl(?, ?, ?)");
 			java.lang.NullPointerException
@@ -977,18 +942,20 @@ public class AltibaseMetaModel {
 				at org.jkiss.dbeaver.model.impl.jdbc.exec.JDBCFactoryDefault.createCallableStatement(JDBCFactoryDefault.java:48)
     	 */
     	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get DDL from DBMS_METADATA")) {
-    		Connection conn = session.getOriginal();
-    		cstmt = conn.prepareCall("exec ? := dbms_metadata.get_ddl(?, ?, ?)");
-    		cstmt.registerOutParameter(1, Types.VARCHAR);
     		
-    		cstmt.setString(2, objectType);
-    		cstmt.setString(3, sourceObject.getName());
-    		cstmt.setString(4, schemaName);
+    		if (hasDbmsMetadataPacakge(session)) {
+        		Connection conn = session.getOriginal();
+        		cstmt = conn.prepareCall("exec ? := dbms_metadata.get_ddl(?, ?, ?)");
+        		cstmt.registerOutParameter(1, Types.VARCHAR);
+        		
+        		cstmt.setString(2, objectType);
+        		cstmt.setString(3, sourceObject.getName());
+        		cstmt.setString(4, schemaName);
 
-    		cstmt.execute();
-    		
-    		ddl = cstmt.getString(1);
-
+        		cstmt.execute();
+        		
+        		ddl = cstmt.getString(1);
+    		}
     	} catch (Exception e) {
     		log.warn("Can't read DDL from DBMS_METADATA", e);
     	}
@@ -1003,10 +970,10 @@ public class AltibaseMetaModel {
 			}
     	}
     	
-    	return ddl.toString();
+    	return ddl;
     }
     
-    private boolean hasDbmsMetadataPacakge(DBRProgressMonitor monitor, DBSObject sourceObject) {
+    private boolean hasDbmsMetadataPacakge(JDBCSession session) {
     	boolean hasDbmsMetadataPacakge = false;
     	JDBCPreparedStatement jpstmt = null;
     	JDBCResultSet jrs = null;
@@ -1019,7 +986,7 @@ public class AltibaseMetaModel {
     				+ " PACKAGE_NAME = 'DBMS_METADATA' "
     				+ " AND STATUS = 0"; // valid
     	
-    	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Check DBMS_METADATA")) {
+    	try {
     		jpstmt = session.prepareStatement(sql);
     		jrs =  jpstmt.executeQuery();
     		if (jrs.next()) {

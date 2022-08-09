@@ -21,7 +21,7 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
-import org.jkiss.dbeaver.ext.altibase.model.meta.GenericMetaObject;
+import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.DBUtils;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
@@ -39,51 +39,51 @@ import java.util.Locale;
 /**
  * Generic tables cache implementation
  */
-public class TableCache extends JDBCStructLookupCache<GenericStructContainer, GenericTableBase, GenericTableColumn> {
+public class TableCache extends JDBCStructLookupCache<AltibaseStructContainer, AltibaseTableBase, AltibaseTableColumn> {
 
     private static final Log log = Log.getLog(TableCache.class);
 
-    final GenericDataSource dataSource;
-    final GenericMetaObject tableObject;
-    final GenericMetaObject columnObject;
+    final AltibaseDataSource dataSource;
+    final AltibaseMetaObject tableObject;
+    final AltibaseMetaObject columnObject;
 
-    protected TableCache(GenericDataSource dataSource)
+    protected TableCache(AltibaseDataSource dataSource)
     {
         super(GenericUtils.getColumn(dataSource, AltibaseConstants.OBJECT_TABLE, JDBCConstants.TABLE_NAME));
         this.dataSource = dataSource;
         this.tableObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_TABLE);
         this.columnObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_TABLE_COLUMN);
-        setListOrderComparator(DBUtils.<GenericTableBase>nameComparatorIgnoreCase());
+        setListOrderComparator(DBUtils.<AltibaseTableBase>nameComparatorIgnoreCase());
     }
 
-    public GenericDataSource getDataSource()
+    public AltibaseDataSource getDataSource()
     {
         return dataSource;
     }
 
     @NotNull
     @Override
-    public JDBCStatement prepareLookupStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTableBase object, @Nullable String objectName) throws SQLException {
+    public JDBCStatement prepareLookupStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @Nullable AltibaseTableBase object, @Nullable String objectName) throws SQLException {
         return dataSource.getMetaModel().prepareTableLoadStatement(session, owner, object, objectName);
     }
 
     @Nullable
     @Override
-    protected GenericTableBase fetchObject(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @NotNull JDBCResultSet dbResult)
+    protected AltibaseTableBase fetchObject(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @NotNull JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         return getDataSource().getMetaModel().createTableImpl(session, owner, tableObject, dbResult);
     }
 
     @Override
-    protected JDBCStatement prepareChildrenStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @Nullable GenericTableBase forTable)
+    protected JDBCStatement prepareChildrenStatement(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @Nullable AltibaseTableBase forTable)
         throws SQLException
     {
         return dataSource.getMetaModel().prepareTableColumnLoadStatement(session, owner, forTable);
     }
 
     @Override
-    protected GenericTableColumn fetchChild(@NotNull JDBCSession session, @NotNull GenericStructContainer owner, @NotNull GenericTableBase table, @NotNull JDBCResultSet dbResult)
+    protected AltibaseTableColumn fetchChild(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @NotNull AltibaseTableBase table, @NotNull JDBCResultSet dbResult)
         throws SQLException, DBException
     {
         String columnName = GenericUtils.safeGetStringTrimmed(columnObject, dbResult, JDBCConstants.COLUMN_NAME);
@@ -151,12 +151,12 @@ public class TableCache extends JDBCStructLookupCache<GenericStructContainer, Ge
     }
 
     @Override
-    public void beforeCacheLoading(JDBCSession session, GenericStructContainer owner) throws DBException {
+    public void beforeCacheLoading(JDBCSession session, AltibaseStructContainer owner) throws DBException {
        // Do nothing
     }
 
     @Override
-    public void afterCacheLoading(JDBCSession session, GenericStructContainer owner) {
+    public void afterCacheLoading(JDBCSession session, AltibaseStructContainer owner) {
         // Do nothing
     }
 }
