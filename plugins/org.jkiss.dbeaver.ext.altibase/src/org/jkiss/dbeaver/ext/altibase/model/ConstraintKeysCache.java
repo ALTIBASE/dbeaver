@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
@@ -44,9 +44,9 @@ class ConstraintKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Al
         super(
             tableCache,
             AltibaseTableBase.class,
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_PRIMARY_KEY, JDBCConstants.TABLE_NAME),
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_PRIMARY_KEY, JDBCConstants.PK_NAME));
-        pkObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_PRIMARY_KEY);
+            AltibaseUtils.getColumn(tableCache.getDataSource(), GenericConstants.OBJECT_PRIMARY_KEY, JDBCConstants.TABLE_NAME),
+            AltibaseUtils.getColumn(tableCache.getDataSource(), GenericConstants.OBJECT_PRIMARY_KEY, JDBCConstants.PK_NAME));
+        pkObject = tableCache.getDataSource().getMetaObject(GenericConstants.OBJECT_PRIMARY_KEY);
     }
 
     @NotNull
@@ -71,7 +71,7 @@ class ConstraintKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Al
     }
 
     protected String getDefaultObjectName(JDBCResultSet dbResult, String parentName) {
-        int keySeq = GenericUtils.safeGetInt(pkObject, dbResult, JDBCConstants.KEY_SEQ);
+        int keySeq = AltibaseUtils.safeGetInt(pkObject, dbResult, JDBCConstants.KEY_SEQ);
         return parentName.toUpperCase(Locale.ENGLISH) + "_PK";
     }
 

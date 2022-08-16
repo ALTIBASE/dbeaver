@@ -17,7 +17,7 @@
 
 package org.jkiss.dbeaver.ext.altibase.model;
 
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.model.connection.DBPDriver;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCDatabaseMetaData;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCDataSourceInfo;
@@ -39,16 +39,16 @@ public class AltibaseDataSourceInfo extends JDBCDataSourceInfo {
     public AltibaseDataSourceInfo(DBPDriver driver, JDBCDatabaseMetaData metaData)
     {
         super(metaData);
-        supportsLimits = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_LIMITS), true);
-        setSupportsResultSetScroll(CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_SCROLL), false));
-        supportsMultipleResults = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_MULTIPLE_RESULTS), false);
-        supportsTransactionsForDDL = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_TRANSACTIONS_FOR_DDL), true);
-        setReadOnlyData(CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_READ_ONLY_DATA), false));
-        setReadOnlyMetaData(CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_READ_ONLY_META_DATA), false));
-        supportsCatalogSelection = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_CATALOG_SELECTION), false);
-        supportsSchemaSelection = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_CATALOG_SELECTION), true);
+        supportsLimits = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_LIMITS), true);
+        setSupportsResultSetScroll(CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_SCROLL), false));
+        supportsMultipleResults = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_MULTIPLE_RESULTS), false);
+        supportsTransactionsForDDL = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_TRANSACTIONS_FOR_DDL), true);
+        setReadOnlyData(CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_READ_ONLY_DATA), false));
+        setReadOnlyMetaData(CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_READ_ONLY_META_DATA), false));
+        supportsCatalogSelection = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_CATALOG_SELECTION), false);
+        supportsSchemaSelection = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_CATALOG_SELECTION), true);
         supportsNullableUniqueConstraints = false;
-        supportsConstraints = CommonUtils.getBoolean(driver.getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_CONSTRAINTS), true);
+        supportsConstraints = CommonUtils.getBoolean(driver.getDriverParameter(GenericConstants.PARAM_SUPPORTS_CONSTRAINTS), true);
     }
 
     @Override

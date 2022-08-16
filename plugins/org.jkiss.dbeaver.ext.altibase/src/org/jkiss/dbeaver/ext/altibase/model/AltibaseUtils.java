@@ -19,18 +19,25 @@ package org.jkiss.dbeaver.ext.altibase.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaColumn;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCPreparedStatement;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
 import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.sql.SQLDialect;
 import org.jkiss.dbeaver.model.sql.SQLUtils;
 import org.jkiss.dbeaver.model.struct.DBSObject;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 /**
  * Generic utils
  */
-public class GenericUtils {
+public class AltibaseUtils {
 
     public static Object getColumn(AltibaseDataSource dataSource, String objectType, String columnId)
     {
@@ -146,8 +153,7 @@ public class GenericUtils {
     }
 
     public static boolean isLegacySQLDialect(DBSObject owner) {
-        SQLDialect dialect = SQLUtils.getDialectFromObject(owner);
-        return dialect instanceof AltibaseSQLDialect && ((AltibaseSQLDialect)dialect).isLegacySQLDialect();
+    	return false;
     }
 
     public static String normalizeProcedureName(String procedureName) {
@@ -163,5 +169,64 @@ public class GenericUtils {
     public static boolean canAlterTable(@NotNull DBSObject object) {
         // Either object is not yet persisted (so no alter is required) or database supports table altering
         return !object.isPersisted() || object.getDataSource().getSQLDialect().supportsAlterTableStatement();
+    }
+    
+    public static String getExplainPlan(JDBCSession session, String query) {
+    	
+    	Statement stmt = null;
+    	String plan = "";
+    	String methodName = "setExplainPlan";
+    	String argType = "byte";
+    	
+		try {
+			Connection conn = session.getOriginal();
+			Class<? extends Connection> clazz = conn.getClass();
+			Method method = getMethod4setExplainByteArg(clazz, methodName, argType);
+
+			if (method == null) {
+				throw new InvocationTargetException(null, 
+						String.format("Unable to find the target method: [class] %s, [method] %s, [argument type] %s", 
+								clazz.toString(), methodName, argType));
+			}
+			
+			// sConn.setExplainPlan(AltibaseConnection.EXPLAIN_PLAN_ONLY);
+			method.invoke(conn, Byte.valueOf((byte) 2));
+			
+			// sStmt.getExplainPlan()
+			stmt = conn.prepareStatement(query);
+			plan = (String) stmt.getClass().getMethod("getExplainPlan").invoke(stmt);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
+				| SecurityException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally
+		{
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		
+    	return plan;
+    }
+    
+    // There are two setExplain in Connction class: the first one's argument is boolean, the second one's argument is byte.
+    // Return the second one.
+	private static Method getMethod4setExplainByteArg(Class class1, String methodName, String argName)
+    {
+		for(Method method:class1.getDeclaredMethods()) {
+			if (method.getName().equals(methodName))
+			{
+				for(Class paramType:method.getParameterTypes())
+					if (paramType.toString().equals(argName))
+							return method;
+			}
+		}
+		
+    	return null;
     }
 }

@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBUtils;
@@ -49,9 +49,9 @@ class IndexCache extends JDBCCompositeCache<AltibaseStructContainer, AltibaseTab
         super(
             tableCache,
             AltibaseTableBase.class,
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_INDEX, JDBCConstants.TABLE_NAME),
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_INDEX, JDBCConstants.INDEX_NAME));
-        indexObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_INDEX);
+            AltibaseUtils.getColumn(tableCache.getDataSource(), GenericConstants.OBJECT_INDEX, JDBCConstants.TABLE_NAME),
+            AltibaseUtils.getColumn(tableCache.getDataSource(), GenericConstants.OBJECT_INDEX, JDBCConstants.INDEX_NAME));
+        indexObject = tableCache.getDataSource().getMetaObject(GenericConstants.OBJECT_INDEX);
     }
 
     @NotNull
@@ -83,10 +83,10 @@ class IndexCache extends JDBCCompositeCache<AltibaseStructContainer, AltibaseTab
     protected AltibaseTableIndex fetchObject(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase parent, String indexName, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
-        boolean isNonUnique = GenericUtils.safeGetBoolean(indexObject, dbResult, JDBCConstants.NON_UNIQUE);
-        String indexQualifier = GenericUtils.safeGetStringTrimmed(indexObject, dbResult, JDBCConstants.INDEX_QUALIFIER);
-        long cardinality = GenericUtils.safeGetLong(indexObject, dbResult, JDBCConstants.INDEX_CARDINALITY);
-        int indexTypeNum = GenericUtils.safeGetInt(indexObject, dbResult, JDBCConstants.TYPE);
+        boolean isNonUnique = AltibaseUtils.safeGetBoolean(indexObject, dbResult, JDBCConstants.NON_UNIQUE);
+        String indexQualifier = AltibaseUtils.safeGetStringTrimmed(indexObject, dbResult, JDBCConstants.INDEX_QUALIFIER);
+        long cardinality = AltibaseUtils.safeGetLong(indexObject, dbResult, JDBCConstants.INDEX_CARDINALITY);
+        int indexTypeNum = AltibaseUtils.safeGetInt(indexObject, dbResult, JDBCConstants.TYPE);
 
         DBSIndexType indexType;
         switch (indexTypeNum) {
@@ -131,9 +131,9 @@ class IndexCache extends JDBCCompositeCache<AltibaseStructContainer, AltibaseTab
         AltibaseTableBase parent, AltibaseTableIndex object, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
-        int ordinalPosition = GenericUtils.safeGetInt(indexObject, dbResult, JDBCConstants.ORDINAL_POSITION);
-        String columnName = GenericUtils.safeGetStringTrimmed(indexObject, dbResult, JDBCConstants.COLUMN_NAME);
-        String ascOrDesc = GenericUtils.safeGetStringTrimmed(indexObject, dbResult, JDBCConstants.ASC_OR_DESC);
+        int ordinalPosition = AltibaseUtils.safeGetInt(indexObject, dbResult, JDBCConstants.ORDINAL_POSITION);
+        String columnName = AltibaseUtils.safeGetStringTrimmed(indexObject, dbResult, JDBCConstants.COLUMN_NAME);
+        String ascOrDesc = AltibaseUtils.safeGetStringTrimmed(indexObject, dbResult, JDBCConstants.ASC_OR_DESC);
 
         if (CommonUtils.isEmpty(columnName)) {
             // Maybe a statistics index without column

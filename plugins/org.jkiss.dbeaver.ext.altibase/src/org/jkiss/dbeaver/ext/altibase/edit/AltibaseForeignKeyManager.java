@@ -20,7 +20,7 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTable;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableBase;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableForeignKey;
-import org.jkiss.dbeaver.ext.altibase.model.GenericUtils;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseUtils;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
 import org.jkiss.dbeaver.model.impl.edit.DBECommandAbstract;
 import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLForeignKeyManager;
@@ -49,17 +49,17 @@ public class AltibaseForeignKeyManager extends SQLForeignKeyManager<AltibaseTabl
     public boolean canCreateObject(Object container) {
         return (container instanceof AltibaseTable)
             && ((AltibaseTable) container).getDataSource().getInfo().supportsReferentialIntegrity()
-            && GenericUtils.canAlterTable((AltibaseTable) container);
+            && AltibaseUtils.canAlterTable((AltibaseTable) container);
     }
 
     @Override
     public boolean canEditObject(AltibaseTableForeignKey object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override
     public boolean canDeleteObject(AltibaseTableForeignKey object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class AltibaseForeignKeyManager extends SQLForeignKeyManager<AltibaseTabl
 
     @Override
     protected boolean isLegacyForeignKeySyntax(AltibaseTableBase owner) {
-        return GenericUtils.isLegacySQLDialect(owner);
+        return AltibaseUtils.isLegacySQLDialect(owner);
     }
 
     @Override

@@ -40,16 +40,16 @@ public class ForeignKeyInfo {
     int deferabilityNum;
 
     public void fetchColumnsInfo (AltibaseMetaObject fkObject, @NotNull JDBCResultSet dbResult) {
-        pkColumnName = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
-        fkTableCatalog = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_CAT);
-        fkTableSchema = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_SCHEM);
-        fkTableName = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_NAME);
-        fkColumnName = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKCOLUMN_NAME);
-        keySeq = GenericUtils.safeGetInt(fkObject, dbResult, JDBCConstants.KEY_SEQ);
-        updateRuleNum = GenericUtils.safeGetInt(fkObject, dbResult, JDBCConstants.UPDATE_RULE);
-        deleteRuleNum = GenericUtils.safeGetInt(fkObject, dbResult, JDBCConstants.DELETE_RULE);
-        fkName = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FK_NAME);
-        pkName = GenericUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.PK_NAME);
-        deferabilityNum = GenericUtils.safeGetInt(fkObject, dbResult, JDBCConstants.DEFERRABILITY);
+        pkColumnName = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
+        fkTableCatalog = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_CAT);
+        fkTableSchema = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_SCHEM);
+        fkTableName = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKTABLE_NAME);
+        fkColumnName = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FKCOLUMN_NAME);
+        keySeq = AltibaseUtils.safeGetInt(fkObject, dbResult, JDBCConstants.KEY_SEQ);
+        updateRuleNum = AltibaseUtils.safeGetInt(fkObject, dbResult, JDBCConstants.UPDATE_RULE);
+        deleteRuleNum = AltibaseUtils.safeGetInt(fkObject, dbResult, JDBCConstants.DELETE_RULE);
+        fkName = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.FK_NAME);
+        pkName = AltibaseUtils.safeGetStringTrimmed(fkObject, dbResult, JDBCConstants.PK_NAME);
+        deferabilityNum = AltibaseUtils.safeGetInt(fkObject, dbResult, JDBCConstants.DEFERRABILITY);
     }
 }

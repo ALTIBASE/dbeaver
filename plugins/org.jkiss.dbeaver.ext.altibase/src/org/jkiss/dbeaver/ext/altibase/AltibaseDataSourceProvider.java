@@ -48,7 +48,7 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
 
     public AltibaseDataSourceProvider()
     {
-        metaModels.put(AltibaseConstants.META_MODEL_STANDARD, new AltibaseMetaModelDescriptor());
+        metaModels.put(GenericConstants.META_MODEL_STANDARD, new AltibaseMetaModelDescriptor());
 
         List<String> replacedModels = new ArrayList<>();
         IExtensionRegistry extensionRegistry = Platform.getExtensionRegistry();
@@ -90,8 +90,8 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
     {
     	///* TODO: Temp. test
         AltibaseMetaModelDescriptor metaModel = null;
-        Object metaModelId = container.getDriver().getDriverParameter(AltibaseConstants.PARAM_META_MODEL);
-        if (metaModelId != null && !AltibaseConstants.META_MODEL_STANDARD.equals(metaModelId)) {
+        Object metaModelId = container.getDriver().getDriverParameter(GenericConstants.PARAM_META_MODEL);
+        if (metaModelId != null && !GenericConstants.META_MODEL_STANDARD.equals(metaModelId)) {
             metaModel = metaModels.get(metaModelId.toString());
             if (metaModel == null) {
                 log.warn("Meta model '" + metaModelId + "' not recognized. Default one will be used");
@@ -111,7 +111,7 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
     }
 
     protected AltibaseMetaModelDescriptor getStandardMetaModel() {
-        return metaModels.get(AltibaseConstants.META_MODEL_STANDARD);
+        return metaModels.get(GenericConstants.META_MODEL_STANDARD);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
         DBPPropertyDescriptor[] connectionProperties = super.getConnectionProperties(monitor, driver, connectionInfo);
         if (connectionProperties == null || connectionProperties.length == 0) {
             // Try to get list of supported properties from custom driver config
-            String driverParametersString = CommonUtils.toString(driver.getDriverParameter(AltibaseConstants.PARAM_DRIVER_PROPERTIES));
+            String driverParametersString = CommonUtils.toString(driver.getDriverParameter(GenericConstants.PARAM_DRIVER_PROPERTIES));
             if (!driverParametersString.isEmpty()) {
                 String[] propList = driverParametersString.split(",");
                 connectionProperties = new DBPPropertyDescriptor[propList.length];

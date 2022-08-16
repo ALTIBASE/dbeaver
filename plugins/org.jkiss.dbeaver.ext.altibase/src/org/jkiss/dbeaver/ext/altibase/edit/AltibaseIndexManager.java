@@ -20,7 +20,7 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTable;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableBase;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableIndex;
-import org.jkiss.dbeaver.ext.altibase.model.GenericUtils;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseUtils;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
 import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLIndexManager;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -51,7 +51,7 @@ public class AltibaseIndexManager extends SQLIndexManager<AltibaseTableIndex, Al
 
     @Override
     public boolean canEditObject(AltibaseTableIndex object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override

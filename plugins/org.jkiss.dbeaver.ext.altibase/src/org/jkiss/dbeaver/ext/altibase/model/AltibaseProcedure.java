@@ -18,7 +18,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
 import org.jkiss.dbeaver.model.DBPUniqueObject;
@@ -116,7 +116,7 @@ public class AltibaseProcedure extends AbstractProcedure<AltibaseDataSource, Alt
         Iterator<? extends AltibaseProcedure> procIter = procedures.iterator();
         AltibaseProcedure procedure = null;
 
-        final AltibaseMetaObject pcObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_PROCEDURE_COLUMN);
+        final AltibaseMetaObject pcObject = getDataSource().getMetaObject(GenericConstants.OBJECT_PROCEDURE_COLUMN);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, this, "Load procedure columns")) {
             final JDBCResultSet dbResult;
             if (DBSProcedureType.PROCEDURE == procedureType) {
@@ -141,17 +141,17 @@ public class AltibaseProcedure extends AbstractProcedure<AltibaseDataSource, Alt
             try {
                 int previousPosition = -1;
                 while (dbResult.next()) {
-                    String columnName = GenericUtils.safeGetString(pcObject, dbResult, JDBCConstants.COLUMN_NAME);
-                    int columnTypeNum = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.COLUMN_TYPE);
-                    int valueType = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.DATA_TYPE);
-                    String typeName = GenericUtils.safeGetString(pcObject, dbResult, JDBCConstants.TYPE_NAME);
-                    int columnSize = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.LENGTH);
-                    boolean notNull = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.NULLABLE) == DatabaseMetaData.procedureNoNulls;
-                    int scale = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.SCALE);
-                    int precision = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.PRECISION);
+                    String columnName = AltibaseUtils.safeGetString(pcObject, dbResult, JDBCConstants.COLUMN_NAME);
+                    int columnTypeNum = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.COLUMN_TYPE);
+                    int valueType = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.DATA_TYPE);
+                    String typeName = AltibaseUtils.safeGetString(pcObject, dbResult, JDBCConstants.TYPE_NAME);
+                    int columnSize = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.LENGTH);
+                    boolean notNull = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.NULLABLE) == DatabaseMetaData.procedureNoNulls;
+                    int scale = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.SCALE);
+                    int precision = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.PRECISION);
                     //int radix = GenericUtils.safeGetInt(dbResult, JDBCConstants.RADIX);
-                    String remarks = GenericUtils.safeGetString(pcObject, dbResult, JDBCConstants.REMARKS);
-                    int position = GenericUtils.safeGetInt(pcObject, dbResult, JDBCConstants.ORDINAL_POSITION);
+                    String remarks = AltibaseUtils.safeGetString(pcObject, dbResult, JDBCConstants.REMARKS);
+                    int position = AltibaseUtils.safeGetInt(pcObject, dbResult, JDBCConstants.ORDINAL_POSITION);
                     DBSProcedureParameterKind parameterType;
                     if (DBSProcedureType.PROCEDURE == procedureType) {
                         switch (columnTypeNum) {

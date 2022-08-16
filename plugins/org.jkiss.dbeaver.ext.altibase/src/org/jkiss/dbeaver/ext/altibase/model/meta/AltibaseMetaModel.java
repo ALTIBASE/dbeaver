@@ -20,7 +20,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.AltibaseMessages;
 import org.jkiss.dbeaver.ext.altibase.model.*;
 import org.jkiss.dbeaver.ext.altibase.util.StringUtil;
@@ -149,7 +149,7 @@ public class AltibaseMetaModel {
         }
 
         try {
-            final AltibaseMetaObject schemaObject = getMetaObject(AltibaseConstants.OBJECT_SCHEMA);
+            final AltibaseMetaObject schemaObject = getMetaObject(GenericConstants.OBJECT_SCHEMA);
 
             final List<AltibaseSchema> tmpSchemas = new ArrayList<>();
             JDBCResultSet dbResult = null;
@@ -163,7 +163,7 @@ public class AltibaseMetaModel {
                         break;
                     }
                     
-                    String schemaName = GenericUtils.safeGetString(schemaObject, dbResult, JDBCConstants.TABLE_SCHEM);
+                    String schemaName = AltibaseUtils.safeGetString(schemaObject, dbResult, JDBCConstants.TABLE_SCHEM);
 
                     boolean nullSchema = false;
                     if (CommonUtils.isEmpty(schemaName)) {
@@ -240,7 +240,7 @@ public class AltibaseMetaModel {
         Map<String, AltibaseProcedure> funcMap = new LinkedHashMap<>();
 
         AltibaseDataSource dataSource = container.getDataSource();
-        AltibaseMetaObject procObject = dataSource.getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
+        AltibaseMetaObject procObject = dataSource.getMetaObject(GenericConstants.OBJECT_PROCEDURE);
         try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Load procedures")) {
             boolean supportsFunctions = false;
             /*
@@ -322,12 +322,12 @@ public class AltibaseMetaModel {
                             if (monitor.isCanceled()) {
                                 break;
                             }
-                            String procedureCatalog = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_CAT);
-                            String procedureSchema = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_SCHEM);
-                            String procedureName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_NAME);
-                            String specificName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.SPECIFIC_NAME);
-                            int procTypeNum = GenericUtils.safeGetInt(procObject, dbResult, JDBCConstants.PROCEDURE_TYPE);
-                            String remarks = GenericUtils.safeGetString(procObject, dbResult, JDBCConstants.REMARKS);
+                            String procedureCatalog = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_CAT);
+                            String procedureSchema = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_SCHEM);
+                            String procedureName = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_NAME);
+                            String specificName = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.SPECIFIC_NAME);
+                            int procTypeNum = AltibaseUtils.safeGetInt(procObject, dbResult, JDBCConstants.PROCEDURE_TYPE);
+                            String remarks = AltibaseUtils.safeGetString(procObject, dbResult, JDBCConstants.REMARKS);
                             DBSProcedureType procedureType;
                             switch (procTypeNum) {
                                 case DatabaseMetaData.procedureNoResult:
@@ -352,7 +352,7 @@ public class AltibaseMetaModel {
                                 log.debug("Broken driver [" + session.getDataSource().getContainer().getDriver().getName() + "] - returns the same list for getProcedures and getFunctons");
                                 break;
                             }
-                            procedureName = GenericUtils.normalizeProcedureName(procedureName);
+                            procedureName = AltibaseUtils.normalizeProcedureName(procedureName);
 
                             AltibasePackage procedurePackage = null;
                             // FIXME: remove as a silly workaround
@@ -524,10 +524,10 @@ public class AltibaseMetaModel {
     }
 
     public AltibaseTableBase createTableImpl(@NotNull JDBCSession session, @NotNull AltibaseStructContainer owner, @NotNull AltibaseMetaObject tableObject, @NotNull JDBCResultSet dbResult) {
-        String tableName = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_NAME);
-        String tableType = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_TYPE);
+        String tableName = AltibaseUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_NAME);
+        String tableType = AltibaseUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_TYPE);
 
-        String tableSchema = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_SCHEM);
+        String tableSchema = AltibaseUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_SCHEM);
         if (!CommonUtils.isEmpty(tableSchema) && owner.getDataSource().isOmitSchema()) {
             // Ignore tables with schema [Google Spanner]
             log.debug("Ignore table " + tableSchema + "." + tableName + " (schemas are omitted)");
@@ -640,7 +640,7 @@ public class AltibaseMetaModel {
     }
 
     public boolean isView(String tableType) {
-        return tableType.toUpperCase(Locale.ENGLISH).contains(AltibaseConstants.TABLE_TYPE_VIEW);
+        return tableType.toUpperCase(Locale.ENGLISH).contains(GenericConstants.TABLE_TYPE_VIEW);
     }
 
     //////////////////////////////////////////////////////
@@ -746,7 +746,7 @@ public class AltibaseMetaModel {
 
     public AltibaseTableConstraintColumn[] createConstraintColumnsImpl(JDBCSession session,
                                                                       AltibaseTableBase parent, AltibaseUniqueKey object, AltibaseMetaObject pkObject, JDBCResultSet dbResult) throws DBException {
-        String columnName = GenericUtils.safeGetStringTrimmed(pkObject, dbResult, JDBCConstants.COLUMN_NAME);
+        String columnName = AltibaseUtils.safeGetStringTrimmed(pkObject, dbResult, JDBCConstants.COLUMN_NAME);
         if (CommonUtils.isEmpty(columnName)) {
             log.debug("Null primary key column for '" + object.getName() + "'");
             return null;
@@ -756,7 +756,7 @@ public class AltibaseMetaModel {
             // [JDBC: SQLite] Escaped column name. Let's un-escape it
             columnName = columnName.substring(1, columnName.length() - 1);
         }
-        int keySeq = GenericUtils.safeGetInt(pkObject, dbResult, JDBCConstants.KEY_SEQ);
+        int keySeq = AltibaseUtils.safeGetInt(pkObject, dbResult, JDBCConstants.KEY_SEQ);
 
         AltibaseTableColumn tableColumn = parent.getAttribute(session.getProgressMonitor(), columnName);
         if (tableColumn == null) {
@@ -892,7 +892,7 @@ public class AltibaseMetaModel {
     	boolean hasDDL = false;
     	JDBCPreparedStatement jpstmt = null;
     	JDBCResultSet jrs = null;
-    	AltibaseMetaObject metaObject = getMetaObject(AltibaseConstants.OBJECT_TABLE);
+    	AltibaseMetaObject metaObject = getMetaObject(GenericConstants.OBJECT_TABLE);
 
     	try (JDBCSession session = DBUtils.openMetaSession(monitor, sourceObject, "Get DDL from DB")) {
     		jpstmt = session.prepareStatement(sql);
@@ -912,7 +912,7 @@ public class AltibaseMetaModel {
                 	hasDDL = true;
                 }
                 	
-                content = GenericUtils.safeGetStringTrimmed(metaObject, jrs, "PARSE");
+                content = AltibaseUtils.safeGetStringTrimmed(metaObject, jrs, "PARSE");
                 if (content != null) {
                 	ddl.append(content);
                 }

@@ -20,7 +20,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.*;
@@ -76,7 +76,7 @@ public abstract class AltibaseTableBase extends JDBCTable<AltibaseDataSource, Al
         }
 
         if (dbResult != null) {
-            this.description = GenericUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.REMARKS);
+            this.description = AltibaseUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.REMARKS);
         }
 
         final AltibaseMetaModel metaModel = container.getDataSource().getMetaModel();
@@ -84,8 +84,8 @@ public abstract class AltibaseTableBase extends JDBCTable<AltibaseDataSource, Al
 
         boolean mergeEntities = container.getDataSource().isMergeEntities();
         if (mergeEntities && dbResult != null) {
-            tableCatalogName = GenericUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.TABLE_CATALOG);
-            tableSchemaName = GenericUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.TABLE_SCHEM);
+            tableCatalogName = AltibaseUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.TABLE_CATALOG);
+            tableSchemaName = AltibaseUtils.safeGetString(container.getTableCache().tableObject, dbResult, JDBCConstants.TABLE_SCHEM);
         } else {
             tableCatalogName = null;
             tableSchemaName = null;
@@ -100,7 +100,7 @@ public abstract class AltibaseTableBase extends JDBCTable<AltibaseDataSource, Al
     @Override
     protected boolean isTruncateSupported() {
         return CommonUtils.getBoolean(
-            getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_TRUNCATE),
+            getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_SUPPORTS_TRUNCATE),
             false);
     }
 
@@ -294,7 +294,7 @@ public abstract class AltibaseTableBase extends JDBCTable<AltibaseDataSource, Al
             // Do not count rows for views
             return null;
         }
-        if (Boolean.FALSE.equals(getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_SUPPORTS_SELECT_COUNT))) {
+        if (Boolean.FALSE.equals(getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_SUPPORTS_SELECT_COUNT))) {
             // Select count not supported
             return null;
         }
@@ -355,7 +355,7 @@ public abstract class AltibaseTableBase extends JDBCTable<AltibaseDataSource, Al
             // Read foreign keys in two passes
             // First read entire resultset to prevent recursive metadata requests
             // some drivers don't like it
-            final AltibaseMetaObject fkObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_FOREIGN_KEY);
+            final AltibaseMetaObject fkObject = getDataSource().getMetaObject(GenericConstants.OBJECT_FOREIGN_KEY);
             final List<ForeignKeyInfo> fkInfos = loadReferenceInfoList(session, fkObject);
 
             List<AltibaseTableForeignKey> fkList = new ArrayList<>();

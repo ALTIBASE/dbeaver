@@ -18,7 +18,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
 import org.jkiss.dbeaver.model.DBPIdentifierCase;
 import org.jkiss.dbeaver.model.DBUtils;
@@ -100,7 +100,7 @@ public class AltibaseStructureAssistant extends JDBCStructureAssistant<AltibaseE
     private void findTablesByMask(JDBCSession session, AltibaseCatalog catalog, AltibaseSchema schema, String tableNameMask, int maxResults, List<DBSObjectReference> objects)
         throws SQLException, DBException
     {
-        final AltibaseMetaObject tableObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_TABLE);
+        final AltibaseMetaObject tableObject = getDataSource().getMetaObject(GenericConstants.OBJECT_TABLE);
         final DBRProgressMonitor monitor = session.getProgressMonitor();
         try (JDBCResultSet dbResult = session.getMetaData().getTables(
             catalog == null ? null : catalog.getName(),
@@ -111,16 +111,16 @@ public class AltibaseStructureAssistant extends JDBCStructureAssistant<AltibaseE
                 if (monitor.isCanceled()) {
                     break;
                 }
-                String catalogName = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_CAT);
-                String schemaName = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_SCHEM);
-                String tableName = GenericUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_NAME);
+                String catalogName = AltibaseUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_CAT);
+                String schemaName = AltibaseUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_SCHEM);
+                String tableName = AltibaseUtils.safeGetStringTrimmed(tableObject, dbResult, JDBCConstants.TABLE_NAME);
                 if (CommonUtils.isEmpty(tableName)) {
                     continue;
                 }
                 objects.add(new TableReference(
                     findContainer(session.getProgressMonitor(), catalog, schema, catalogName, schemaName),
                     tableName,
-                    GenericUtils.safeGetString(tableObject, dbResult, JDBCConstants.REMARKS)));
+                    AltibaseUtils.safeGetString(tableObject, dbResult, JDBCConstants.REMARKS)));
                 if (objects.size() >= maxResults) {
                     break;
                 }
@@ -131,7 +131,7 @@ public class AltibaseStructureAssistant extends JDBCStructureAssistant<AltibaseE
     private void findProceduresByMask(JDBCSession session, AltibaseCatalog catalog, AltibaseSchema schema, String procNameMask, int maxResults, List<DBSObjectReference> objects)
         throws SQLException, DBException
     {
-        final AltibaseMetaObject procObject = getDataSource().getMetaObject(AltibaseConstants.OBJECT_PROCEDURE);
+        final AltibaseMetaObject procObject = getDataSource().getMetaObject(GenericConstants.OBJECT_PROCEDURE);
         DBRProgressMonitor monitor = session.getProgressMonitor();
         try (JDBCResultSet dbResult = session.getMetaData().getProcedures(
             catalog == null ? null : catalog.getName(),
@@ -141,10 +141,10 @@ public class AltibaseStructureAssistant extends JDBCStructureAssistant<AltibaseE
                 if (monitor.isCanceled()) {
                     break;
                 }
-                String catalogName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_CAT);
-                String schemaName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_SCHEM);
-                String procName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_NAME);
-                String uniqueName = GenericUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.SPECIFIC_NAME);
+                String catalogName = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_CAT);
+                String schemaName = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_SCHEM);
+                String procName = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.PROCEDURE_NAME);
+                String uniqueName = AltibaseUtils.safeGetStringTrimmed(procObject, dbResult, JDBCConstants.SPECIFIC_NAME);
                 if (CommonUtils.isEmpty(procName)) {
                     continue;
                 }
@@ -152,7 +152,7 @@ public class AltibaseStructureAssistant extends JDBCStructureAssistant<AltibaseE
                     uniqueName = procName;
                 }
                 // Some driver return specific name for regular name
-                procName = GenericUtils.normalizeProcedureName(procName);
+                procName = AltibaseUtils.normalizeProcedureName(procName);
 
                 objects.add(new ProcedureReference(
                     findContainer(session.getProgressMonitor(), catalog, schema, catalogName, schemaName),

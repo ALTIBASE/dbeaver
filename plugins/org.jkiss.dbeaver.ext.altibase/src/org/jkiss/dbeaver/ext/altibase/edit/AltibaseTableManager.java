@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.edit;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.*;
 import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPEvaluationContext;
@@ -92,7 +92,7 @@ public class AltibaseTableManager extends SQLTableManager<AltibaseTableBase, Alt
         }
         String tableName = getNewChildName(monitor, structContainer, isView ? BASE_VIEW_NAME : BASE_TABLE_NAME);
         return structContainer.getDataSource().getMetaModel().createTableImpl(structContainer, tableName,
-            isView ? AltibaseConstants.TABLE_TYPE_VIEW : AltibaseConstants.TABLE_TYPE_TABLE,
+            isView ? GenericConstants.TABLE_TYPE_VIEW : GenericConstants.TABLE_TYPE_TABLE,
             null);
     }
 

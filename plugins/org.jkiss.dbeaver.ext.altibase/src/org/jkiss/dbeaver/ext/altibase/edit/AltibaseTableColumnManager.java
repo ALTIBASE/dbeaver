@@ -19,11 +19,11 @@ package org.jkiss.dbeaver.ext.altibase.edit;
 
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTable;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableBase;
 import org.jkiss.dbeaver.ext.altibase.model.AltibaseTableColumn;
-import org.jkiss.dbeaver.ext.altibase.model.GenericUtils;
+import org.jkiss.dbeaver.ext.altibase.model.AltibaseUtils;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPDataKind;
@@ -55,17 +55,17 @@ public class AltibaseTableColumnManager extends SQLTableColumnManager<AltibaseTa
 
     @Override
     public boolean canCreateObject(Object container) {
-        return container instanceof AltibaseTable && GenericUtils.canAlterTable((AltibaseTable) container);
+        return container instanceof AltibaseTable && AltibaseUtils.canAlterTable((AltibaseTable) container);
     }
 
     @Override
     public boolean canEditObject(AltibaseTableColumn object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override
     public boolean canDeleteObject(AltibaseTableColumn object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override
@@ -136,13 +136,13 @@ public class AltibaseTableColumnManager extends SQLTableColumnManager<AltibaseTa
     @Override
     protected long getDDLFeatures(AltibaseTableColumn object) {
         long features = 0;
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_DDL_DROP_COLUMN_SHORT))) {
             features |= DDL_FEATURE_OMIT_COLUMN_CLAUSE_IN_DROP;
         }
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_DDL_DROP_COLUMN_BRACKETS))) {
             features |= DDL_FEATURE_USER_BRACKETS_IN_DROP;
         }
-        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(AltibaseConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
+        if (CommonUtils.toBoolean(object.getDataSource().getContainer().getDriver().getDriverParameter(GenericConstants.PARAM_ALTER_TABLE_ADD_COLUMN))) {
             features |= FEATURE_ALTER_TABLE_ADD_COLUMN;
         }
         return features;

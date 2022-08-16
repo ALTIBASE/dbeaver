@@ -17,7 +17,7 @@
 package org.jkiss.dbeaver.ext.altibase.edit;
 
 import org.jkiss.code.Nullable;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.*;
 import org.jkiss.dbeaver.model.edit.DBECommandContext;
 import org.jkiss.dbeaver.model.impl.sql.edit.struct.SQLConstraintManager;
@@ -44,17 +44,17 @@ public class AltibasePrimaryKeyManager extends SQLConstraintManager<AltibaseUniq
     public boolean canCreateObject(Object container) {
         return (container instanceof AltibaseTable)
             && (!(((AltibaseTable) container).getDataSource().getInfo() instanceof AltibaseDataSourceInfo) || ((AltibaseDataSourceInfo) ((AltibaseTable) container).getDataSource().getInfo()).supportsTableConstraints())
-            && GenericUtils.canAlterTable((AltibaseTable) container);
+            && AltibaseUtils.canAlterTable((AltibaseTable) container);
     }
 
     @Override
     public boolean canEditObject(AltibaseUniqueKey object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override
     public boolean canDeleteObject(AltibaseUniqueKey object) {
-        return GenericUtils.canAlterTable(object);
+        return AltibaseUtils.canAlterTable(object);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class AltibasePrimaryKeyManager extends SQLConstraintManager<AltibaseUniq
         AltibaseTableBase tableBase = (AltibaseTableBase)container;
         return tableBase.getDataSource().getMetaModel().createConstraintImpl(
             tableBase,
-            AltibaseConstants.BASE_CONSTRAINT_NAME,
+            GenericConstants.BASE_CONSTRAINT_NAME,
             DBSEntityConstraintType.PRIMARY_KEY,
             null,
             false);
@@ -73,6 +73,6 @@ public class AltibasePrimaryKeyManager extends SQLConstraintManager<AltibaseUniq
 
     @Override
     protected boolean isLegacyConstraintsSyntax(AltibaseTableBase owner) {
-        return GenericUtils.isLegacySQLDialect(owner);
+        return AltibaseUtils.isLegacySQLDialect(owner);
     }
 }

@@ -19,7 +19,7 @@ package org.jkiss.dbeaver.ext.altibase.model;
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
+import org.jkiss.dbeaver.ext.altibase.GenericConstants;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModel;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaModelForeignKeyFetcher;
 import org.jkiss.dbeaver.ext.altibase.model.meta.AltibaseMetaObject;
@@ -57,9 +57,9 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
         super(
             tableCache,
             AltibaseTableBase.class,
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FKTABLE_NAME),
-            GenericUtils.getColumn(tableCache.getDataSource(), AltibaseConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FK_NAME));
-        foreignKeyObject = tableCache.getDataSource().getMetaObject(AltibaseConstants.OBJECT_FOREIGN_KEY);
+            AltibaseUtils.getColumn(tableCache.getDataSource(), GenericConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FKTABLE_NAME),
+            AltibaseUtils.getColumn(tableCache.getDataSource(), GenericConstants.OBJECT_FOREIGN_KEY, JDBCConstants.FK_NAME));
+        foreignKeyObject = tableCache.getDataSource().getMetaObject(GenericConstants.OBJECT_FOREIGN_KEY);
         fkIndex = 1;
     }
 
@@ -83,14 +83,14 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
     protected AltibaseTableForeignKey fetchObject(JDBCSession session, AltibaseStructContainer owner, AltibaseTableBase parent, String fkName, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
-        String pkTableCatalog = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_CAT);
-        String pkTableSchema = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_SCHEM);
-        String pkTableName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_NAME);
-        String fkTableCatalog = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.FKTABLE_CAT);
-        String fkTableSchema = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.FKTABLE_SCHEM);
+        String pkTableCatalog = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_CAT);
+        String pkTableSchema = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_SCHEM);
+        String pkTableName = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_NAME);
+        String fkTableCatalog = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.FKTABLE_CAT);
+        String fkTableSchema = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.FKTABLE_SCHEM);
 
-        int keySeq = GenericUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.KEY_SEQ);
-        String pkName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PK_NAME);
+        int keySeq = AltibaseUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.KEY_SEQ);
+        String pkName = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PK_NAME);
 
         DBSForeignKeyModifyRule deleteRule;
         DBSForeignKeyModifyRule updateRule;
@@ -104,9 +104,9 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
             updateRule = foreignKeyFetcher.fetchUpdateRule(foreignKeyObject, dbResult);
             deferability = foreignKeyFetcher.fetchDeferability(foreignKeyObject, dbResult);
         } else {
-            int updateRuleNum = GenericUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.UPDATE_RULE);
-            int deleteRuleNum = GenericUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.DELETE_RULE);
-            int deferabilityNum = GenericUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.DEFERRABILITY);
+            int updateRuleNum = AltibaseUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.UPDATE_RULE);
+            int deleteRuleNum = AltibaseUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.DELETE_RULE);
+            int deferabilityNum = AltibaseUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.DEFERRABILITY);
 
             deleteRule = JDBCUtils.getCascadeFromNum(deleteRuleNum);
             updateRule = JDBCUtils.getCascadeFromNum(updateRuleNum);
@@ -144,7 +144,7 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
             }
         }
         if (pk == null) {
-            String pkColumnName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
+            String pkColumnName = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
             AltibaseTableColumn pkColumn = pkTable.getAttribute(session.getProgressMonitor(), pkColumnName);
             if (pkColumn == null) {
                 log.warn("Can't find PK table " + pkTable.getFullyQualifiedName(DBPEvaluationContext.DDL) + " column " + pkColumnName);
@@ -205,7 +205,7 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
         AltibaseTableBase parent, AltibaseTableForeignKey foreignKey, JDBCResultSet dbResult)
         throws SQLException, DBException
     {
-        String pkColumnName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
+        String pkColumnName = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKCOLUMN_NAME);
         DBSEntityReferrer referencedConstraint = foreignKey.getReferencedConstraint();
         if (referencedConstraint == null) {
             log.warn("Null reference constraint in FK '" + foreignKey.getFullyQualifiedName(DBPEvaluationContext.DDL) + "'");
@@ -219,9 +219,9 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
             log.warn("Can't find PK table " + DBUtils.getObjectFullName(referencedConstraint.getParentObject(), DBPEvaluationContext.DML) + " column " + pkColumnName);
             return null;
         }
-        int keySeq = GenericUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.KEY_SEQ);
+        int keySeq = AltibaseUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.KEY_SEQ);
 
-        String fkColumnName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.FKCOLUMN_NAME);
+        String fkColumnName = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.FKCOLUMN_NAME);
         if (CommonUtils.isEmpty(fkColumnName)) {
             log.warn("Empty FK column for table " + foreignKey.getTable().getFullyQualifiedName(DBPEvaluationContext.DDL) + " PK column " + pkColumnName);
             return null;
@@ -245,8 +245,8 @@ class ForeignKeysCache extends JDBCCompositeCache<AltibaseStructContainer, Altib
 
     @Override
     protected String getDefaultObjectName(JDBCResultSet dbResult, String parentName) {
-        final String pkTableName = GenericUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_NAME);
-        int keySeq = GenericUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.KEY_SEQ);
+        final String pkTableName = AltibaseUtils.safeGetStringTrimmed(foreignKeyObject, dbResult, JDBCConstants.PKTABLE_NAME);
+        int keySeq = AltibaseUtils.safeGetInt(foreignKeyObject, dbResult, JDBCConstants.KEY_SEQ);
         String fkName = "FK_" + parentName + "_" + pkTableName;
         if (fkIndex > 1 && keySeq == 1) {
             fkName += "_" + fkIndex;
