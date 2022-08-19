@@ -88,7 +88,6 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
         @NotNull DBPDataSourceContainer container)
         throws DBException
     {
-    	///* TODO: Temp. test
         AltibaseMetaModelDescriptor metaModel = null;
         Object metaModelId = container.getDriver().getDriverParameter(GenericConstants.PARAM_META_MODEL);
         if (metaModelId != null && !GenericConstants.META_MODEL_STANDARD.equals(metaModelId)) {
@@ -106,8 +105,6 @@ public class AltibaseDataSourceProvider extends JDBCDataSourceProvider {
         }
         AltibaseMetaModel metaModelInstance = metaModel.getInstance();
         return metaModelInstance.createDataSourceImpl(monitor, container);
-        //*/
-    	//return new AltibaseDataSource(monitor, container);
     }
 
     protected AltibaseMetaModelDescriptor getStandardMetaModel() {
