@@ -16,15 +16,18 @@
  */
 package org.jkiss.dbeaver.ext.altibase.model;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.model.plan.AltibaseExecutionPlan;
 import org.jkiss.dbeaver.ext.generic.GenericConstants;
 import org.jkiss.dbeaver.ext.generic.model.GenericDataSource;
+import org.jkiss.dbeaver.ext.generic.model.GenericSchema;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.exec.DBCSession;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCSession;
@@ -39,6 +42,8 @@ import org.jkiss.utils.CommonUtils;
 public class AltibaseDataSource extends GenericDataSource implements DBCQueryPlanner {
 
     private static final Log log = Log.getLog(AltibaseDataSource.class);
+    
+    private GenericSchema publicSchema;
 
     public AltibaseDataSource(DBRProgressMonitor monitor, DBPDataSourceContainer container, AltibaseMetaModel metaModel)
         throws DBException
@@ -93,6 +98,9 @@ public class AltibaseDataSource extends GenericDataSource implements DBCQueryPla
 
         // Init
         super.initialize(monitor);
+        
+        publicSchema = new GenericSchema(this, null, AltibaseConstants.PUBLIC_USER);
+        publicSchema.setVirtual(true);
     }
 
 
@@ -127,6 +135,10 @@ public class AltibaseDataSource extends GenericDataSource implements DBCQueryPla
     @Override
     public Class<? extends DBSObject> getPrimaryChildType(@Nullable DBRProgressMonitor monitor) throws DBException {
         return AltibaseTable.class;
+    }
+    
+    public Collection<AltibaseSynonym> getPublicSynonyms(DBRProgressMonitor monitor) throws DBException {
+        return (Collection<AltibaseSynonym>) publicSchema.getSynonyms(monitor);
     }
     
     ///////////////////////////////////////////////

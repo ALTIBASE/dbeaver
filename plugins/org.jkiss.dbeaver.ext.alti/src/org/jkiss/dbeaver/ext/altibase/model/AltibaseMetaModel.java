@@ -34,6 +34,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.altibase.AltibaseMessages;
 import org.jkiss.dbeaver.ext.altibase.AltibaseUtils;
 import org.jkiss.dbeaver.ext.generic.GenericConstants;
@@ -271,20 +272,29 @@ public class AltibaseMetaModel extends GenericMetaModel
     }
 
     public JDBCStatement prepareSynonymsLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container) throws SQLException {
+    	boolean isPublic = container.getName().equalsIgnoreCase(AltibaseConstants.PUBLIC_USER);
+    	
         final JDBCPreparedStatement dbStat = session.prepareStatement(
         		"SELECT "
-        				+ " SYNONYM_NAME, OBJECT_OWNER_NAME, OBJECT_NAME"
+        				+ " SYNONYM_OWNER_ID, SYNONYM_NAME, OBJECT_OWNER_NAME, OBJECT_NAME"
         			+ " FROM "
-        				+ " SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_SYNONYMS_ S "
+        				+ " SYSTEM_.SYS_SYNONYMS_ S " + ((isPublic)? "":", SYSTEM_.SYS_USERS_ U" )
         			+ " WHERE "
-        				+ " U.USER_NAME = ? AND U.USER_ID = S.SYNONYM_OWNER_ID"
+        				+ ((isPublic)? 
+        						" SYNONYM_OWNER_ID IS NULL":
+        						" U.USER_NAME = ? AND U.USER_ID = S.SYNONYM_OWNER_ID")
         			+ " ORDER BY SYNONYM_NAME");
-        dbStat.setString(1, container.getName());
+        
+        if (isPublic == false) {
+        	dbStat.setString(1, container.getName());
+        }
+        
         return dbStat;
     }
 
     public GenericSynonym createSynonymImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
     	return new AltibaseSynonym(container
+    			, JDBCUtils.safeGetInt(dbResult, "SYNONYM_OWNER_ID")
     			, JDBCUtils.safeGetString(dbResult, "SYNONYM_NAME")
     			, ""
     			, JDBCUtils.safeGetString(dbResult, "OBJECT_OWNER_NAME")

@@ -158,5 +158,20 @@ public class AltibaseUtils {
 		
 		return objTypeName.replaceAll(" ", "_");
 	}
+	
+	public static String getQuotedName(String aSchemaName, String aObjName)
+	{
+		StringBuilder sQuotedName = new StringBuilder();
+		
+		if (isEmpty(aSchemaName) == false) {
+			sQuotedName.append("\"").append(aSchemaName).append("\".");
+		}
+		
+		if (isEmpty(aObjName) == false) {
+			sQuotedName.append("\"").append(aObjName).append("\"");
+		}
+		
+		return sQuotedName.toString();
+	}
 
 }
