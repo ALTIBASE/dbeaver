@@ -17,43 +17,86 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.dbeaver.ext.generic.model.GenericTrigger;
+import org.jkiss.dbeaver.model.DBPScriptObject;
 import org.jkiss.dbeaver.model.DBPSystemObject;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
+import org.jkiss.dbeaver.model.impl.jdbc.JDBCUtils;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.struct.DBSObject;
+import org.jkiss.dbeaver.model.struct.rdb.DBSTable;
 
 /**
- * FireBirdTrigger
+ * AltibaseTrigger
  */
-public abstract class AltibaseTrigger<OWNER extends DBSObject> extends GenericTrigger implements DBPSystemObject {
+public abstract class AltibaseTrigger<OWNER extends DBSObject> extends GenericTrigger<DBSObject> implements DBPSystemObject, DBPScriptObject {
 
-    private final AltibaseTriggerType type;
-    private final int sequence;
-    private final boolean isSystem;
+	protected boolean is_enable;
+	protected String event_time;
+	protected String event_type;
+	protected String granularity;
+	protected int update_column_count;
+	protected int ref_row_count;
+	protected String dml_stmt_type;
+	protected String dmltable_schema;
+	protected String dmltable_table;
 
-    public AltibaseTrigger(OWNER container, String name, String description, AltibaseTriggerType type, int sequence, boolean isSystem) {
+    public AltibaseTrigger(OWNER container, String name, String description, JDBCResultSet dbResult) {
         super(container, name, description);
 
-        this.type = type;
-        this.sequence = sequence;
-        this.isSystem = isSystem;
-    }
-
-    public AltibaseTriggerType getType() {
-        return type;
-    }
-
-    @Property(viewable = true, editable = true, updatable = false, order = 10)
-    public String getTriggerType() {
-        return type.getDisplayName();
-    }
-
-    @Property(viewable = true, editable = true, updatable = false, order = 11)
-    public int getSequence() {
-        return sequence;
+        this.is_enable 			= (JDBCUtils.safeGetInt(dbResult, "IS_ENABLE") == 1);
+        this.event_time 		= JDBCUtils.safeGetStringTrimmed(dbResult, "EVENT_TIME");
+        this.event_type 		= JDBCUtils.safeGetStringTrimmed(dbResult, "EVENT_TYPE");
+        this.granularity 		= JDBCUtils.safeGetStringTrimmed(dbResult, "GRANULARITY");
+        this.update_column_count= JDBCUtils.safeGetInt(dbResult, "UPDATE_COLUMN_CNT");
+        this.ref_row_count 		= JDBCUtils.safeGetInt(dbResult, "REF_ROW_CNT");
+        this.dml_stmt_type 		= JDBCUtils.safeGetString(dbResult, "DML_STMT_TYPE");
+        this.dmltable_schema 	= JDBCUtils.safeGetString(dbResult, "DMLTABLE_SCHEMA");
+        this.dmltable_table 	= JDBCUtils.safeGetString(dbResult, "DMLTABLE_NAME");
     }
 
     @Override
     public boolean isSystem() {
-        return isSystem;
+        return false;
+    }
+    
+    @Override
+    @Property(viewable = true, order = 4)
+    public DBSTable getTable() {
+        return (DBSTable) getParentObject();
+    }
+    
+    @Property(viewable = true, order = 5)
+    public boolean isEnabled() {
+        return is_enable;
+    }
+    
+    @Property(viewable = true, order = 6)
+    public String getEventTime() {
+        return event_time;
+    }
+    
+    @Property(viewable = true, order = 7)
+    public String getEventType() {
+        return event_type;
+    }
+    
+    @Property(viewable = true, order = 8)
+    public int getUpdateColumnCount() {
+        return update_column_count;
+    }
+    
+    @Property(viewable = true, order = 9)
+    public String getGranularity() {
+        return granularity;
+    }
+    
+    @Property(viewable = true, order = 10)
+    public String getTargetTable() {
+        return (dmltable_schema == null || dmltable_table == null)? "":dmltable_schema + "." + dmltable_table;
+    }
+    
+    @Property(viewable = true, order = 11)
+    public String getDmlType() {
+        return dml_stmt_type;
     }
 }

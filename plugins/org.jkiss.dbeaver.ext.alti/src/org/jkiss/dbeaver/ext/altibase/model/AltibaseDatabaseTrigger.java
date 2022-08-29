@@ -17,12 +17,13 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 import org.jkiss.dbeaver.model.struct.rdb.DBSTable;
 
 public class AltibaseDatabaseTrigger extends AltibaseTrigger<GenericStructContainer> {
 
-    public AltibaseDatabaseTrigger(GenericStructContainer container, String name, String description, AltibaseTriggerType type, int sequence, boolean isSystem) {
-        super(container, name, description, type, sequence, isSystem);
+    public AltibaseDatabaseTrigger(GenericStructContainer container, String name, String description, JDBCResultSet dbResult) {
+        super(container, name, description, dbResult);
     }
 
     @Override

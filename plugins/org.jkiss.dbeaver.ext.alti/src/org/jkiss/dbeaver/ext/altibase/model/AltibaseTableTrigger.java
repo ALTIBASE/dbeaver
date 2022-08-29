@@ -17,19 +17,13 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.dbeaver.ext.generic.model.GenericTableBase;
-import org.jkiss.dbeaver.model.DBPSystemObject;
-import org.jkiss.dbeaver.model.meta.Property;
-import org.jkiss.dbeaver.model.struct.rdb.DBSTable;
+import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 
-public class AltibaseTableTrigger extends AltibaseTrigger<GenericTableBase> implements DBPSystemObject {
-
-    public AltibaseTableTrigger(GenericTableBase container, String name, String description, AltibaseTriggerType type, int sequence, boolean isSystem) {
-        super(container, name, description, type, sequence, isSystem);
-    }
-
-    @Override
-    @Property(viewable = true, order = 4)
-    public DBSTable getTable() {
-        return (DBSTable) getParentObject();
+/**
+ * AltibaseTableTrigger
+ */
+public class AltibaseTableTrigger extends AltibaseTrigger<GenericTableBase>{
+    public AltibaseTableTrigger(GenericTableBase container, String name, String description, JDBCResultSet dbResult) {
+        super(container, name, description, dbResult);
     }
 }

@@ -118,6 +118,11 @@ public class AltibaseDataSource extends GenericDataSource implements DBCQueryPla
         return (List<AltibaseProcedure>) super.getProcedures(monitor);
     }
 
+    @Override
+    public List<AltibaseTableTrigger> getTableTriggers(DBRProgressMonitor monitor) throws DBException {
+        return (List<AltibaseTableTrigger>) super.getTableTriggers(monitor);
+    }
+    
     @NotNull
     @Override
     public Class<? extends DBSObject> getPrimaryChildType(@Nullable DBRProgressMonitor monitor) throws DBException {

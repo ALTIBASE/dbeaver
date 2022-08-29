@@ -29,12 +29,13 @@ public class AltibaseTable extends GenericTable implements AltibaseTableBase, DB
 		super(container, tableName, tableType, dbResult);
 	}
 
-	protected Map<String, String> columnDomainTypes;
+	//protected Map<String, String> columnDomainTypes;
     
     @Override
     protected boolean isTruncateSupported() {
         return true;
     }
+    
     /*
     @Override
     public synchronized List<AltibaseTableColumn> getAttributes(@NotNull DBRProgressMonitor monitor) throws DBException {

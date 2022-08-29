@@ -29,18 +29,18 @@ import java.util.Arrays;
 
 public class AltibaseSQLDialect extends GenericSQLDialect {
 
-    private static final String[] ALTI_BLOCK_HEADERS = new String[]{
+    private static final String[] ALTIBASE_BLOCK_HEADERS = new String[]{
         "EXECUTE BLOCK",
         "DECLARE",
         "IS",
     };
 
-    private static final String[][] ALTI_BEGIN_END_BLOCK = new String[][]{
+    private static final String[][] ALTIBASE_BEGIN_END_BLOCK = new String[][]{
         {"BEGIN", "END"},
     };
 
     private static final String[] DDL_KEYWORDS = new String[] {
-        "CREATE", "ALTER", "DROP", "EXECUTE"
+        "CREATE", "ALTER", "DROP", "EXECUTE", "CACHE"
     };
 
     private static final String[] ALTIBASE_KEYWORDS = new String[] {
@@ -62,12 +62,12 @@ public class AltibaseSQLDialect extends GenericSQLDialect {
 
     @Override
     public String[] getBlockHeaderStrings() {
-        return ALTI_BLOCK_HEADERS;
+        return ALTIBASE_BLOCK_HEADERS;
     }
 
     @Override
     public String[][] getBlockBoundStrings() {
-        return ALTI_BEGIN_END_BLOCK;
+        return ALTIBASE_BEGIN_END_BLOCK;
     }
 
     public void initDriverSettings(JDBCSession session, JDBCDataSource dataSource, JDBCDatabaseMetaData metaData) {
@@ -87,17 +87,12 @@ public class AltibaseSQLDialect extends GenericSQLDialect {
     }
 
     @Override
-    protected String getStoredProcedureCallInitialClause(DBSProcedure proc) {
-        return "select * from " + proc.getFullyQualifiedName(DBPEvaluationContext.DML);
-    }
-
-    @Override
     public boolean supportsInsertAllDefaultValuesStatement() {
-        return true;
+        return false;
     }
 
     @Override
     public boolean supportsAliasInConditions() {
-        return false;
+        return true;
     }
 }

@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.ext.altibase.AltibaseMessages;
@@ -44,8 +45,10 @@ import org.jkiss.dbeaver.ext.generic.model.GenericProcedure;
 import org.jkiss.dbeaver.ext.generic.model.GenericSequence;
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
 import org.jkiss.dbeaver.ext.generic.model.GenericSynonym;
+import org.jkiss.dbeaver.ext.generic.model.GenericTable;
 import org.jkiss.dbeaver.ext.generic.model.GenericTableBase;
 import org.jkiss.dbeaver.ext.generic.model.GenericTableColumn;
+import org.jkiss.dbeaver.ext.generic.model.GenericTrigger;
 import org.jkiss.dbeaver.ext.generic.model.GenericUtils;
 import org.jkiss.dbeaver.ext.generic.model.GenericView;
 import org.jkiss.dbeaver.ext.generic.model.meta.GenericMetaModel;
@@ -73,11 +76,10 @@ public class AltibaseMetaModel extends GenericMetaModel
 {
     //private Pattern ERROR_POSITION_PATTERN = Pattern.compile(" line ([0-9]+), column ([0-9]+)");
     
-    //private static final Set<String> INVALID_TABLE_TYPES = new HashSet<>();
-    
     private static final Log log = Log.getLog(AltibaseMetaModel.class);
     public static boolean DBMS_METADATA = true;
 
+    /*
     private static final Set<String> INVALID_TABLE_TYPES = new HashSet<>();
     
     static {
@@ -87,6 +89,7 @@ public class AltibaseMetaModel extends GenericMetaModel
         INVALID_TABLE_TYPES.add("SEQUENCE");
         INVALID_TABLE_TYPES.add("SYNONYM");
     }
+    */
     
     public AltibaseMetaModel() {
         super();
@@ -292,42 +295,80 @@ public class AltibaseMetaModel extends GenericMetaModel
     public boolean supportsTriggers(@NotNull GenericDataSource dataSource) {
         return true;
     }
-    /*
+    
     @Override
     public JDBCStatement prepareTableTriggersLoadStatement(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @Nullable GenericTableBase table) throws SQLException {
         JDBCPreparedStatement dbStat = session.prepareStatement(
-                "SELECT RDB$TRIGGER_NAME AS TRIGGER_NAME, RDB$RELATION_NAME AS OWNER, T.* FROM RDB$TRIGGERS T\n" +
-                        "WHERE RDB$RELATION_NAME" + (table == null ? " IS NOT NULL" : "=?"));
-        if (table != null) {
-            dbStat.setString(1, table.getName());
-        }
+        		"SELECT"
+        				+ "   TR.OWNER_SCHEMA"
+        				+ " , TR.OWNER_TABLE AS OWNER" // DBeaver dependent column alias
+        				+ " , TR.USER_NAME AS TRIGGER_SCHEMA"
+        				+ " , TR.TRIGGER_NAME"
+        				+ " , TR.IS_ENABLE"
+        				+ " , CASE2(TR.EVENT_TIME = 1, 'BEFORE', TR.EVENT_TIME = 2, 'AFTER', TR.EVENT_TIME = 3, 'INSTEAD OF', 'Unknown') AS EVENT_TIME"
+        				+ " , CASE2(TR.EVENT_TYPE = 1, 'INSERT', TR.EVENT_TYPE = 2, 'DELETE', TR.EVENT_TYPE = 4, 'UPDATE', 'Unknown') AS EVENT_TYPE "
+        				+ " , CASE2(TR.GRANULARITY = 1, 'FOR EACH ROW', TR.GRANULARITY = 12, 'TFOR EACH STATEMENT', 'Unknown') AS GRANULARITY"
+        				+ " , TR.UPDATE_COLUMN_CNT"
+        				+ " , TR.REF_ROW_CNT"
+        				+ " , CASE2(TDT.STMT_TYPE = 8, 'DELETE', TDT.STMT_TYPE = 19, 'INSERT', TDT.STMT_TYPE = 33, 'UPDATE', "
+        				        + " TDT.STMT_TYPE IS NULL, NULL, 'Unknown') AS DML_STMT_TYPE"
+        				+ " , TDT.USER_NAME AS DMLTABLE_SCHEMA"
+        				+ " , TDT.TABLE_NAME AS DMLTABLE_NAME"
+        			+ " FROM "
+        			+ " (SELECT "
+        				+ " R.*"
+        				+ " ,U.USER_NAME AS OWNER_SCHEMA"
+        				+ " ,T.TABLE_NAME AS OWNER_TABLE"
+        			+ " FROM "
+        				+ " SYSTEM_.SYS_USERS_ U"
+        				+ " , SYSTEM_.SYS_TABLES_ T"
+        				+ " , SYSTEM_.SYS_TRIGGERS_ R "
+        			+ " WHERE "
+        				+ " U.USER_ID = T.USER_ID "
+        				+ " AND T.TABLE_ID = R.TABLE_ID "
+        				+ " AND U.USER_NAME = ?"
+        				+ " AND T.TABLE_NAME " + ((table == null)?" IS NOT NULL":"= ?") + ") TR "
+        			/* left outer join: DML target table could be null */
+        			+ " LEFT OUTER JOIN "
+        			+ " (SELECT"
+        				+ " TRIGGER_OID"
+        				+ " , STMT_TYPE"
+        				+ " , U.USER_NAME"
+        				+ " , T.TABLE_NAME"
+        			+ " FROM "
+        				+ " SYSTEM_.SYS_USERS_ U"
+        				+ " , SYSTEM_.SYS_TABLES_ T"
+        				+ " , SYSTEM_.SYS_TRIGGER_DML_TABLES_"
+        			+ " WHERE"
+        				+ " DML_TABLE_ID = T.TABLE_ID"
+        				+ " AND T.USER_ID = U.USER_ID"
+        			+ " ) TDT"
+        			+ " ON TR.TRIGGER_OID = TDT.TRIGGER_OID");
+
+		dbStat.setString(1, container.getName()); // user name
+		
+    	if (table != null) {
+    		dbStat.setString(2, table.getName()); // table name
+    	}
+    	
         return dbStat;
     }
 
     @Override
     public GenericTrigger createTableTriggerImpl(@NotNull JDBCSession session, @NotNull GenericStructContainer container, @NotNull GenericTableBase parent, String triggerName, @NotNull JDBCResultSet dbResult) throws DBException {
         if (CommonUtils.isEmpty(triggerName)) {
-            triggerName = JDBCUtils.safeGetStringTrimmed(dbResult, "RDB$TRIGGER_NAME");
+            triggerName = JDBCUtils.safeGetStringTrimmed(dbResult, "TRIGGER_NAME");
         }
         if (triggerName == null) {
             return null;
         }
-        int sequence = JDBCUtils.safeGetInt(dbResult, "RDB$TRIGGER_SEQUENCE");
-        int type = JDBCUtils.safeGetInt(dbResult, "RDB$TRIGGER_TYPE");
-        String description = JDBCUtils.safeGetStringTrimmed(dbResult, "RDB$DESCRIPTION");
-        int systemFlag = JDBCUtils.safeGetInt(dbResult, "RDB$SYSTEM_FLAG");
-        boolean isSystem = systemFlag > 0; // System flag value 0 - if user-defined and 1 or more if system
-
-        return new FireBirdTableTrigger(
+        
+        return new AltibaseTableTrigger(
                 parent,
                 triggerName,
-                description,
-                FireBirdTriggerType.getByType(type),
-                sequence,
-                isSystem);
+                null, //description
+                dbResult);
     }
-
-     */
     
     @Override
     public boolean supportsDatabaseTriggers(@NotNull GenericDataSource dataSource) {
@@ -403,13 +444,50 @@ public class AltibaseMetaModel extends GenericMetaModel
             throw new DBException(e, container.getDataSource());
         }
     }
-
+    */
+    
     @Override
     public String getTriggerDDL(@NotNull DBRProgressMonitor monitor, @NotNull GenericTrigger trigger) throws DBException {
-        return AltibaseUtils.getTriggerSource(monitor, (FireBirdTrigger)trigger);
+    	String ddl = null;
+    	String schemaName = null;
+    	
+    	if (trigger.getParentObject() instanceof GenericTable) {
+    		schemaName = trigger.getParentObject().getParentObject().getName();
+    	}
+    	else {
+    		schemaName = trigger.getParentObject().getName();
+    	}
+    	
+    	if (DBMS_METADATA) {
+    		ddl = getDDLFromDbmsMetadata(monitor, trigger, schemaName, "TRIGGER");
+    	}
+    	
+    	if (!DBMS_METADATA || AltibaseUtils.isEmpty(ddl)) {
+	    	String sql = "SELECT "
+	    			+ " substring"
+	    			+ " FROM"
+	    				+ " system_.sys_triggers_ t"
+	    				+ " , system_.sys_trigger_strings_ sts"
+	    			+ " WHERE"
+	    				+ " t.user_name = ?"
+	    				+ " AND t.trigger_name = ?"
+	    				+ " AND sts.trigger_oid = t.trigger_oid"
+	    			+ " ORDER BY seqno";
+	    	
+	    	ddl = getTriggerDDLFromCatalog(monitor, trigger, schemaName, sql);
+    	}
+        
+    	if (ddl.length() < 1) {
+    		ddl = "-- Source code not available";
+    	}
+    	else {
+    		ddl += ";" + AltibaseUtils.NEW_LINE + "/";
+    	}
+    	
+        return ddl.toString();
     }
 
-	
+	/*
     
     @Override
     public DBPErrorAssistant.ErrorPosition getErrorPosition(@NotNull Throwable error) {
@@ -445,11 +523,6 @@ public class AltibaseMetaModel extends GenericMetaModel
         );
     }
 	*/
-    
-    @Override
-    public String getAutoIncrementClause(GenericTableColumn column) {
-        return null;
-    }
 
     /*
     @Override
@@ -642,9 +715,17 @@ public class AltibaseMetaModel extends GenericMetaModel
     }
 
     private String getViewProcDDLFromCatalog(DBRProgressMonitor monitor, DBSObject sourceObject, String schemaName, String sql) {
+    	return geDDLFromCatalog(monitor, sourceObject, schemaName, sql, "PARSE");
+    }
+    
+    private String getTriggerDDLFromCatalog(DBRProgressMonitor monitor, DBSObject sourceObject, String schemaName, String sql) {
+    	return geDDLFromCatalog(monitor, sourceObject, schemaName, sql, "SUBSTRING");
+    }
+    
+    private String geDDLFromCatalog(DBRProgressMonitor monitor, DBSObject sourceObject, String schemaName, String sql, String colname) {
     	StringBuilder ddl = new StringBuilder(AltibaseMessages.NO_DBMS_METADATA);
     	String content = null;
-    	boolean hasDDL = false;
+    	//boolean hasDDL = false;
     	JDBCPreparedStatement jpstmt = null;
     	JDBCResultSet jrs = null;
     	GenericMetaObject metaObject = getMetaObject(GenericConstants.OBJECT_TABLE);
@@ -660,14 +741,15 @@ public class AltibaseMetaModel extends GenericMetaModel
     				break;
     			}
 
+    			/*
     			if (hasDDL == true) {
                 	ddl.append(AltibaseUtils.NEW_LINE);
                 }
                 else {
                 	hasDDL = true;
                 }
-                	
-                content = GenericUtils.safeGetStringTrimmed(metaObject, jrs, "PARSE");
+                */
+                content = GenericUtils.safeGetString(metaObject, jrs, colname);
                 if (content != null) {
                 	ddl.append(content);
                 }

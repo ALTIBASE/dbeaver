@@ -66,8 +66,9 @@ public class AltibaseSequence extends GenericSequence implements DBPScriptObject
     @Override
     @Property(viewable = true, order = 2)
     public BigDecimal getLastValue() {
+    	/* If the target sequence has not been used at all, the CURRENT_SEQ returns NULL value */
     	if (lastValue == null)
-    		return minValue;
+    		return startWith;
     	else
     		return lastValue;
     }
@@ -132,28 +133,28 @@ public class AltibaseSequence extends GenericSequence implements DBPScriptObject
         } else {
             sb.append("CREATE SEQUENCE ");
         }
-        sb.append(getFullyQualifiedName(DBPEvaluationContext.DDL)).append(" ");
+        sb.append(getFullyQualifiedName(DBPEvaluationContext.DDL));
 
         if (getStartWith() != null) {
-            sb.append("START WITH ").append(getStartWith()).append(" ");
+            sb.append(" START WITH ").append(getStartWith());
         }
         
         if (getIncrementBy() != null) {
-            sb.append("INCREMENT BY ").append(getIncrementBy()).append(" ");
+            sb.append(" INCREMENT BY ").append(getIncrementBy());
         }
         if (getMinValue() != null) {
-            sb.append("MINVALUE ").append(getMinValue()).append(" ");
+            sb.append(" MINVALUE ").append(getMinValue());
         }
         if (getMaxValue() != null) {
-            sb.append("MAXVALUE ").append(getMaxValue()).append(" ");
+            sb.append(" MAXVALUE ").append(getMaxValue());
         }
 
         if (getCacheSize().compareTo(BigDecimal.ZERO) > 0) {
-            sb.append("CACHE ").append(getCacheSize()).append(" ");
+            sb.append(" CACHE ").append(getCacheSize());
         }
 
         if (isCycle()) {
-            sb.append("CYCLE ");
+            sb.append(" CYCLE");
         }
 
         sb.append(";");
