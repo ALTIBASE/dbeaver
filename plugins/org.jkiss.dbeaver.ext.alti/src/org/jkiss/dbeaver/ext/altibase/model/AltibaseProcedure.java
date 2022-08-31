@@ -43,4 +43,14 @@ public class AltibaseProcedure extends GenericProcedure implements GenericScript
         }
         return source;
     }
+    
+    public String getProcedureTypeName()
+    {
+    	DBSProcedureType procedureType = getProcedureType();
+    	if (procedureType == DBSProcedureType.UNKNOWN) {
+    		return "TYPESET";
+    	} else {
+    		return procedureType.name();
+    	}
+    }
 }

@@ -217,7 +217,7 @@ public class AltibaseMetaModel extends GenericMetaModel
     	String ddl = null;
     	
     	if (DBMS_METADATA) {
-    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), sourceObject.getProcedureType().name());
+    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), ((AltibaseProcedure)sourceObject).getProcedureTypeName());
     	}
     	
     	if (!DBMS_METADATA || AltibaseUtils.isEmpty(ddl)) {
@@ -691,12 +691,16 @@ public class AltibaseMetaModel extends GenericMetaModel
     			
     			switch (procTypeNum) {
     			case DatabaseMetaData.procedureNoResult:
-    			case DatabaseMetaData.procedureResultUnknown:
     				procedureType = DBSProcedureType.PROCEDURE;
     				break;
     			case DatabaseMetaData.procedureReturnsResult:
     				procedureType = DBSProcedureType.FUNCTION;
     				break;
+    			// Typeset
+    			case DatabaseMetaData.procedureResultUnknown:
+    				procedureType = DBSProcedureType.UNKNOWN;
+    				break;
+
     			default:
     				continue;
     			}
@@ -704,24 +708,64 @@ public class AltibaseMetaModel extends GenericMetaModel
     				specificName = procedureName;
     			}
     			
-				String key = schemaName + "." + procedureName;
-				AltibasePackage altibasePackage = pkgDependentProcMap.get(key);
+    			// Typeset
+    			if (procedureType == DBSProcedureType.UNKNOWN ) {
+        			final AltibaseTypeset typeset = createTypesetImpl(container, procedureName);
 
-    			final AltibaseProcedure procedure = createProcedureImpl(
-    					altibasePackage == null ? container:altibasePackage,
-						procedureName,
-						specificName,
-						remarks,
-						procedureType,
-						null);
-    			
-    			if (altibasePackage == null) {
-    				container.addProcedure(procedure);
+        			container.addProcedure(typeset);
+    			} else {
+    				// Procedure or Function
+    				String key = schemaName + "." + procedureName;
+    				AltibasePackage altibasePackage = pkgDependentProcMap.get(key);
+
+        			final AltibaseProcedure procedure = createProcedureImpl(
+        					altibasePackage == null ? container:altibasePackage,
+    						procedureName,
+    						specificName,
+    						remarks,
+    						procedureType,
+    						null);
+        			
+        			if (altibasePackage == null) {
+        				container.addProcedure(procedure);
+        			}
     			}
+
     		}
     	} 
     }
 
+    /* TODO: Remove later
+    private void loadTypesets (DBRProgressMonitor monitor, @NotNull GenericObjectContainer container, JDBCSession session) throws SQLException, DBException {
+    	
+    	// Load packages
+    	try (JDBCStatement dbStat = prepareTypesetLoadStatement(session, container)) {
+    		dbStat.setFetchSize(DBConstants.METADATA_FETCH_SIZE);
+            dbStat.executeStatement();
+            JDBCResultSet dbResult = dbStat.getResultSet();
+            if (dbResult != null) {
+            	try {
+            		while (dbResult.next()) {
+            			if (monitor.isCanceled()) {
+                            break;
+                        }
+            			
+            			String procedureName = JDBCUtils.safeGetString(dbResult, "PROC_NAME");
+            			boolean isValid = (JDBCUtils.safeGetInt(dbResult, "STATUS") == 0); // 0: valid, 1: invalid 
+            			
+            			final AltibaseTypeset typeset = createTypesetImpl(container, procedureName, isValid);
+
+            			container.addProcedure(typeset);
+
+            		}
+            	} finally {
+            		dbResult.close();
+            	}
+            }
+    	}
+    }
+    */
+    
     //////////////////////////////////////////////////////
     // Procedure load
 
@@ -746,11 +790,35 @@ public class AltibaseMetaModel extends GenericMetaModel
         	pkgDependentProcMap = getPackageDepedentProcedureNameSet(monitor, container, session, packageMap);
 
         	loadProcFunctions(monitor, container, session, pkgDependentProcMap);
+        	
+        	/* TODO: Remove later
+        	 * loadTypesets(monitor, container, session);
+        	 */
 
         } catch (SQLException e) {
         	throw new DBException(e, dataSource);
         }
     }
+
+    //////////////////////////////////////////////////////
+    // Typeset
+    /* TODO: Remove later
+	public JDBCStatement prepareTypesetLoadStatement(JDBCSession session, GenericStructContainer container) throws SQLException {
+        final JDBCPreparedStatement dbStat = session.prepareStatement(
+        		"SELECT"
+        				+ " PROC_NAME, STATUS"
+        			+ " FROM SYSTEM_.SYS_PROCEDURES_ P, SYSTEM_.SYS_USERS_ U"
+        			+ " WHERE"
+        				+ " U.USER_NAME = ?"
+        				+ " AND U.USER_ID = P.USER_ID"
+        				+ " AND OBJECT_TYPE = 3");
+        dbStat.setString(1, container.getName());
+        return dbStat;
+	}
+     */
+	public AltibaseTypeset createTypesetImpl(GenericStructContainer container, String procedureName) {
+		return new AltibaseTypeset(container, procedureName);
+	}
 
     //////////////////////////////////////////////////////
     // Packages
@@ -762,7 +830,7 @@ public class AltibaseMetaModel extends GenericMetaModel
         			+ " WHERE"
         				+ " U.USER_NAME = ?"
         				+ " AND U.USER_ID = P.USER_ID"
-        			+ " ORDER BY PACKAGE_NAME, PACKAGE_TYPE ASC");
+        			+ " ORDER BY PACKAGE_NAME, PACKAGE_TYPE ASC"); /* Guaranteeing name, type ordering is required to package specification is prior to body. */
         dbStat.setString(1, container.getName());
         return dbStat;
 	}
@@ -816,14 +884,6 @@ public class AltibaseMetaModel extends GenericMetaModel
     				break;
     			}
 
-    			/*
-    			if (hasDDL == true) {
-                	ddl.append(AltibaseUtils.NEW_LINE);
-                }
-                else {
-                	hasDDL = true;
-                }
-                */
                 content = GenericUtils.safeGetString(metaObject, jrs, colname);
                 if (content != null) {
                 	ddl.append(content);

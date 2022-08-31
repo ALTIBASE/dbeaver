@@ -62,13 +62,13 @@
                                     <items label="%tree.column.node.name" path="attribute" property="attributes" icon="#column">
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseUniqueKey" label="%tree.uni_keys.node.name" icon="#constraints" description="%tree.uni_keys.node.tip">
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericUniqueKey" label="%tree.uni_keys.node.name" icon="#constraints" description="%tree.uni_keys.node.tip">
                                     <items label="%tree.uni_key.node.name" path="uniqueKey" property="constraints" icon="#unique-key">
                                         <items label="%tree.uni_key.columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
                                         </items>
                                     </items>
                                 </folder>
-                                <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseTableForeignKey" label="%tree.foreign_keys.node.name" icon="#foreign-keys" description="%tree.foreign_keys.node.tip">
+                                <folder type="org.jkiss.dbeaver.ext.generic.model.GenericTableForeignKey" label="%tree.foreign_keys.node.name" icon="#foreign-keys" description="%tree.foreign_keys.node.tip">
                                     <items label="%tree.foreign_key.node.name" path="association" property="associations" icon="#foreign-key">
                                         <items label="%tree.foreign_key_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="attributeReferences" navigable="false" inline="true">
                                         </items>
@@ -149,6 +149,10 @@
                         <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedure" label="%tree.functions.node.name" icon="#functions" description="Functions">
                             <items label="%tree.functions.node.name" itemLabel="%tree.function.node.name" path="function" property="functionsOnly" icon="#function">
                                 <items label="%tree.function_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
+                            </items>
+                        </folder>
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseTypeset" label="%tree.typesets.node.name" icon="#data_types" description="Typesets">
+                            <items label="%tree.typesets.node.name" itemLabel="%tree.typeset.node.name" path="typeset" property="typesetsOnly" icon="#data_type">
                             </items>
                         </folder>
                         <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibasePackage" label="%tree.packages.node.name" icon="#packages" description="Packages">

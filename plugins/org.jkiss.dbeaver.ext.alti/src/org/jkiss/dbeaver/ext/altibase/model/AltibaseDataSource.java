@@ -123,6 +123,7 @@ public class AltibaseDataSource extends GenericDataSource implements DBCQueryPla
         return this;
     }
 
+    /*
     @Override
     public List<AltibaseTable> getPhysicalTables(DBRProgressMonitor monitor) throws DBException {
         return (List<AltibaseTable>) super.getPhysicalTables(monitor);
@@ -142,6 +143,7 @@ public class AltibaseDataSource extends GenericDataSource implements DBCQueryPla
     public List<AltibaseTableTrigger> getTableTriggers(DBRProgressMonitor monitor) throws DBException {
         return (List<AltibaseTableTrigger>) super.getTableTriggers(monitor);
     }
+	*/
     
     @NotNull
     @Override
