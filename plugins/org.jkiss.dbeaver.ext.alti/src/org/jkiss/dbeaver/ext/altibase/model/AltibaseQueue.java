@@ -17,11 +17,18 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
+import org.jkiss.dbeaver.ext.generic.model.GenericTable;
+import org.jkiss.dbeaver.model.DBPNamedObject2;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
 
-public class AltibaseQueue extends AltibaseTable {
-
-	public AltibaseQueue(GenericStructContainer container, String tableName, String tableType, JDBCResultSet dbResult) {
+public class AltibaseQueue extends GenericTable implements AltibaseTableBase, DBPNamedObject2 {
+	
+    public AltibaseQueue(GenericStructContainer container, String tableName, String tableType, JDBCResultSet dbResult) {
 		super(container, tableName, tableType, dbResult);
 	}
+
+    @Override
+    protected boolean isTruncateSupported() {
+        return false;
+    }
 }

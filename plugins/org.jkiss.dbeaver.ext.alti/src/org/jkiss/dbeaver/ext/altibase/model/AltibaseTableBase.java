@@ -16,12 +16,6 @@
  */
 package org.jkiss.dbeaver.ext.altibase.model;
 
-import org.jkiss.code.NotNull;
-import org.jkiss.dbeaver.DBException;
-import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
-
-import java.util.List;
-
 public interface AltibaseTableBase {
 
     //String getSchemaName();
