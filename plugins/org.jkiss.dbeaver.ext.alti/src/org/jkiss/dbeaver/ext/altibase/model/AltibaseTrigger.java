@@ -99,4 +99,11 @@ public abstract class AltibaseTrigger<OWNER extends DBSObject> extends GenericTr
     public String getDmlType() {
         return dml_stmt_type;
     }
+    
+    @Override
+    @Property(viewable = false, hidden = true, order = 100)
+    public String getDescription()
+    {
+        return null;
+    }
 }
