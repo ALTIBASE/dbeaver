@@ -4,7 +4,7 @@ import org.jkiss.dbeaver.ext.generic.model.GenericFunctionResultType;
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
 import org.jkiss.dbeaver.model.struct.rdb.DBSProcedureType;
 
-public class AltibaseTypeset extends AltibaseProcedure {
+public class AltibaseTypeset extends AltibaseProcedureStandAlone {
 
 	//private boolean isValid;
 	

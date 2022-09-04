@@ -141,12 +141,12 @@
                         </folder>
                         <!-- TODO: Queue table -->
                         <!-- TODO: Pacakges -->
-                        <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedure" label="%tree.procedures.node.name" icon="#procedures" description="Procedures">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedureStandAlone" label="%tree.procedures.node.name" icon="#procedures" description="Procedures">
                             <items label="%tree.procedures.node.name" itemLabel="%tree.procedure.node.name" path="procedure" property="proceduresOnly" icon="#procedure">
                                 <items label="%tree.procedure_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
                             </items>
                         </folder>
-                        <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedure" label="%tree.functions.node.name" icon="#functions" description="Functions">
+                        <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedureStandAlone" label="%tree.functions.node.name" icon="#functions" description="Functions">
                             <items label="%tree.functions.node.name" itemLabel="%tree.function.node.name" path="function" property="functionsOnly" icon="#function">
                                 <items label="%tree.function_columns.node.name" itemLabel="%tree.column.node.name" path="column" property="parameters" navigable="false"/>
                             </items>
@@ -158,12 +158,12 @@
                         <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibasePackage" label="%tree.packages.node.name" icon="#packages" description="Packages">
                             <items label="%tree.package.node.name" path="package" property="packages" icon="#package">
                                 <items label="%tree.procedures.node.name" itemLabel="%tree.procedure.node.name" path="procedure" property="proceduresOnly" icon="#procedure">
-                                    <handler action="open" command="org.jkiss.dbeaver.ext.altibase.code.package.navigate"/>
+                                    <!--<handler action="open" command="org.jkiss.dbeaver.ext.altibase.code.package.navigate"/>-->
                                     <!-- Proc arguments. Not inline because arguments reading is expensive -->
                                     <items label="%tree.arguments.node.name" itemLabel="%tree.argument.node.name" path="argument" property="parameters" icon="#argument" navigable="false" inline="false">
-                                        <items label="%tree.attributes.node.name" itemLabel="%tree.attribute.node.name" path="attribute" property="attributes" icon="#attribute" navigable="false" inline="true" id="ProcedureArgumentAttributes" visibleIf="object.hasAttributes()">
+                                        <!--<items label="%tree.attributes.node.name" itemLabel="%tree.attribute.node.name" path="attribute" property="parameters" icon="#attribute" navigable="false" inline="true" id="ProcedureArgumentAttributes">
                                             <items ref="ProcedureArgumentAttributes"/>
-                                        </items>
+                                        </items>-->
                                     </items>
 									<!--
                                     <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseDependency" label="%tree.dependencies.node.name" description="Procedure dependency/dependent objects">
@@ -175,12 +175,12 @@
 									-->
                                 </items>
                                 <items label="%tree.functions.node.name" itemLabel="%tree.function.node.name" path="function" property="functionsOnly" icon="#function">
-                                    <handler action="open" command="org.jkiss.dbeaver.ext.altibase.code.package.navigate"/>
+                                    <!--<handler action="open" command="org.jkiss.dbeaver.ext.altibase.code.package.navigate"/>-->
                                     <!-- Proc arguments. Not inline because arguments reading is expensive -->
                                     <items label="%tree.arguments.node.name" itemLabel="%tree.argument.node.name" path="argument" property="parameters" icon="#argument" navigable="false" inline="false">
-                                        <items label="%tree.attributes.node.name" itemLabel="%tree.attribute.node.name" path="attribute" property="attributes" icon="#attribute" navigable="false" inline="true" id="ProcedureArgumentAttributes" visibleIf="object.hasAttributes()">
+                                        <!--<items label="%tree.attributes.node.name" itemLabel="%tree.attribute.node.name" path="attribute" property="parameters" icon="#attribute" navigable="false" inline="true" id="ProcedureArgumentAttributes">
                                             <items ref="ProcedureArgumentAttributes"/>
-                                        </items>
+                                        </items>-->
                                     </items>
 									<!--
                                     <folder type="org.jkiss.dbeaver.ext.altibase.model.AltibaseDependency" label="%tree.dependencies.node.name" description="Procedure dependency/dependent objects">
@@ -230,7 +230,7 @@
         <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseViewManager" 				objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseView"/>
         <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseMaterializedViewManager" 	objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseMaterializedView"/>
         <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseTableColumnManager" 		objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseTableColumn"/>
-        <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseProcedureManager" 			objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedure"/>
+        <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseProcedureManager" 			objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseProcedureBase"/>
         <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseSequenceManager" 			objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseSequence"/>
     </extension>
 

@@ -217,7 +217,7 @@ public class AltibaseMetaModel extends GenericMetaModel
     	String ddl = null;
     	
     	if (DBMS_METADATA) {
-    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), ((AltibaseProcedure)sourceObject).getProcedureTypeName());
+    		ddl = getDDLFromDbmsMetadata(monitor, sourceObject, sourceObject.getSchema().getName(), ((AltibaseProcedureStandAlone)sourceObject).getProcedureTypeName());
     	}
     	
     	if (!DBMS_METADATA || AltibaseUtils.isEmpty(ddl)) {
@@ -245,8 +245,14 @@ public class AltibaseMetaModel extends GenericMetaModel
     }
 
     @Override
-    public AltibaseProcedure createProcedureImpl(GenericStructContainer container, String procedureName, String specificName, String remarks, DBSProcedureType procedureType, GenericFunctionResultType functionResultType) {
-        return new AltibaseProcedure(container, procedureName, specificName, remarks, procedureType, functionResultType);
+    public AltibaseProcedureStandAlone createProcedureImpl(GenericStructContainer container, String procedureName, String specificName, 
+    		String remarks, DBSProcedureType procedureType, GenericFunctionResultType functionResultType) {
+        return new AltibaseProcedureStandAlone(container, procedureName, specificName, remarks, procedureType, functionResultType);
+    }
+    
+    public AltibaseProcedurePackaged createProcedurePackagedImpl(GenericStructContainer container, String procedureName, String specificName, 
+    		String remarks, DBSProcedureType procedureType, GenericFunctionResultType functionResultType, String pkgSchema) {
+        return new AltibaseProcedurePackaged(container, procedureName, specificName, remarks, procedureType, functionResultType, pkgSchema);
     }
     
     /*
@@ -654,16 +660,20 @@ public class AltibaseMetaModel extends GenericMetaModel
 
             			// new package
             			if (altibasePackage == null) {
+            				
             				altibasePackage = createPackageImpl(container, packageName, dbResult);
 
             				if (altibasePackage != null) {
             					container.addPackage(altibasePackage);
             					packageMap.put(key, altibasePackage);
-            				} else {
-            					continue;
             				}
+            				else {
+            					log.warn("Fail to create Package: " + key);
+            				}
+
             			// if packageMap already contains,
             			} else {
+            				// if body found,
             				if (JDBCUtils.safeGetInt(dbResult, "PACKAGE_TYPE") == 7) {
             					altibasePackage.setBody(true);
             				} else {
@@ -679,16 +689,13 @@ public class AltibaseMetaModel extends GenericMetaModel
     	}
     }
     
-    private Map<String, AltibasePackage> getPackageDepedentProcedureNameSet(DBRProgressMonitor monitor, @NotNull GenericObjectContainer container, 
+    private void loadPackageDepedentProcedures(DBRProgressMonitor monitor, @NotNull GenericObjectContainer container, 
     		JDBCSession session, Map<String, AltibasePackage> packageMap) throws SQLException, DBException {
     	
-    	// Key: schema.procName, Value: AltibasePackage
-    	Map<String, AltibasePackage> pkgDependentProcSet = new HashMap<String, AltibasePackage>();
-    	
-    	String schemaName = container.getName();
+    	String pkgSchema = container.getName();
     	
     	// Load packages
-    	try (JDBCStatement dbStat = preparePackageDependentProcedureLoadStatement(session, container)) {
+    	try (JDBCStatement dbStat = prepareProcedurePackagedLoadStatement(session, container)) {
     		dbStat.setFetchSize(DBConstants.METADATA_FETCH_SIZE);
             dbStat.executeStatement();
             JDBCResultSet dbResult = dbStat.getResultSet();
@@ -699,33 +706,43 @@ public class AltibaseMetaModel extends GenericMetaModel
                             break;
                         }
             			
-            			String packageName = JDBCUtils.safeGetString(dbResult, "PACKAGE_NAME");
-            			String procSchema = JDBCUtils.safeGetString(dbResult, "SUB_PROC_SCHEMA");
-            			String procName = JDBCUtils.safeGetString(dbResult, "SUB_PROC_NAME");
+            			String packageName 	= JDBCUtils.safeGetString(dbResult, "PACKAGE_NAME");
+            			/* Schema of package-dependent proceudre is identical to the parent package */
+            			//String procSchema 	= JDBCUtils.safeGetString(dbResult, "SUB_PROC_SCHEMA");
+            			String procName 	= JDBCUtils.safeGetString(dbResult, "SUB_PROC_NAME");
+            			int sub_type		= JDBCUtils.safeGetInt   (dbResult, "SUB_TYPE");
             			
-            			if (AltibaseUtils.isEmpty(procSchema) || AltibaseUtils.isEmpty(procName)) {
+            			if (AltibaseUtils.isEmpty(procName)) {
             				continue;
             			}
             			
-            			String key = schemaName + "." + packageName;
-            			if (packageMap.containsKey(key)) {
-            				AltibasePackage altibasePackagepackage = packageMap.get(key);
-            				pkgDependentProcSet.put(procSchema + "." + procName, altibasePackagepackage);
-            			}
+            			String key = pkgSchema + "." + packageName;
+           				AltibasePackage pkg = packageMap.get(key);
+           				
+           				if (pkg != null) {
+        	    			final AltibaseProcedurePackaged procedure = createProcedurePackagedImpl (
+        	    					pkg,
+        	    					procName,
+        	    					procName,
+        							"",
+        							(sub_type == 0)? DBSProcedureType.PROCEDURE: DBSProcedureType.FUNCTION,
+        							null,
+        							pkgSchema);
+        	
+        	    			if (procedure != null) {
+        	    				pkg.addProcedure(procedure);
+        	    			}
+           				}
+            				
             		}
             	} finally {
             		dbResult.close();
             	}
             }
     	}
-    	
-    	return pkgDependentProcSet;
     }
     
-    private void loadProcFunctions(DBRProgressMonitor monitor, @NotNull GenericObjectContainer container, JDBCSession session, 
-    		Map<String, AltibasePackage> pkgDependentProcMap) throws SQLException {
-    	
-    	String schemaName = container.getName();
+    private void loadPSMs(DBRProgressMonitor monitor, @NotNull GenericObjectContainer container, JDBCSession session) throws SQLException {
 
     	GenericDataSource dataSource = container.getDataSource();
     	GenericMetaObject procObject = dataSource.getMetaObject(GenericConstants.OBJECT_PROCEDURE);
@@ -770,21 +787,18 @@ public class AltibaseMetaModel extends GenericMetaModel
         			final AltibaseTypeset typeset = createTypesetImpl(container, procedureName);
         			container.addProcedure(typeset);
     			} else {
-    				// Procedure or Function
-    				String key = schemaName + "." + procedureName;
-    				AltibasePackage altibasePackage = pkgDependentProcMap.get(key);
-
-        			final AltibaseProcedure procedure = createProcedureImpl(
-        					altibasePackage == null ? container:altibasePackage,
-    						procedureName,
-    						specificName,
-    						remarks,
-    						procedureType,
-    						null);
-        			
-        			if (altibasePackage == null) {
-        				container.addProcedure(procedure);
-        			}
+	    			// Procedure or Function
+	    			final AltibaseProcedureStandAlone procedure = createProcedureImpl(
+	    					container,
+							procedureName,
+							specificName,
+							remarks,
+							procedureType,
+							null);
+	
+	    			if (procedure != null) {
+	    				container.addProcedure(procedure);
+	    			}
     			}
 
     		}
@@ -835,7 +849,7 @@ public class AltibaseMetaModel extends GenericMetaModel
         Map<String, AltibasePackage> packageMap = new HashMap<String, AltibasePackage>();
         
         // Key: Package dependent procedure name including function
-        Map<String, AltibasePackage> pkgDependentProcMap;
+        //Map<String, AltibasePackage> pkgDependentProcMap;
 
         GenericDataSource dataSource = container.getDataSource();
         
@@ -843,11 +857,11 @@ public class AltibaseMetaModel extends GenericMetaModel
         	
         	loadPackages(monitor, container, session, packageMap);
 
-        	pkgDependentProcMap = getPackageDepedentProcedureNameSet(monitor, container, session, packageMap);
+        	loadPackageDepedentProcedures(monitor, container, session, packageMap); 
 
-        	loadProcFunctions(monitor, container, session, pkgDependentProcMap);
+        	loadPSMs(monitor, container, session);
         	
-        	/* TODO: Remove later
+        	/* TODO: Typeset also loaded at loadPSMs
         	 * loadTypesets(monitor, container, session);
         	 */
 
@@ -896,21 +910,37 @@ public class AltibaseMetaModel extends GenericMetaModel
 		return new AltibasePackage(container, packageName, resultSet);
 	}
 	
-	public JDBCStatement preparePackageDependentProcedureLoadStatement(JDBCSession session, GenericStructContainer container) throws SQLException {
+	public JDBCStatement prepareProcedurePackagedLoadStatement(JDBCSession session, GenericStructContainer container) throws SQLException {
         final JDBCPreparedStatement dbStat = session.prepareStatement(
         		"SELECT"
         				+ " PP.PACKAGE_NAME"
-        				+ ", U2.USER_NAME AS SUB_PROC_SCHEMA"
         				+ ", PP.OBJECT_NAME AS SUB_PROC_NAME"
-        				+ ", SUB_TYPE" /* SUB_TYPE 0: procedure, 1: function */
-        			+ " FROM SYSTEM_.SYS_PACKAGES_ P, SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_PACKAGE_PARAS_ PP, SYSTEM_.SYS_USERS_ U2"
+        				+ ", PP.SUB_TYPE" /* SUB_TYPE 0: procedure, 1: function */
+        			+ " FROM SYSTEM_.SYS_PACKAGES_ P, SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_PACKAGE_PARAS_ PP"
         			+ " WHERE"
         				+ " U.USER_NAME = ?"
         				+ " AND U.USER_ID = P.USER_ID"
         				+ " AND P.PACKAGE_OID = PP.PACKAGE_OID"
-        				+ " AND ( PARA_ORDER = 1 OR PARA_ORDER = 0 )" /* 0 is if no parameter, 1 is the first parameter if any */
-        				+ " AND U2.USER_ID = PP.USER_ID");
+        				+ " AND ( PARA_ORDER = 1 OR PARA_ORDER = 0 )"); /* 0 is if no parameter, 1 is the first parameter if any */
         dbStat.setString(1, container.getName());
+        return dbStat;
+	}
+	
+	public JDBCPreparedStatement prepareProcedurePackagedColumnLoadStatement(JDBCSession session, String pkgSchema, String pkgName, String procName) throws SQLException {
+        final JDBCPreparedStatement dbStat = session.prepareStatement(
+        		"SELECT"
+        				+ " PP.*, D.TYPE_NAME"
+        			+ " FROM SYSTEM_.SYS_USERS_ U, SYSTEM_.SYS_PACKAGE_PARAS_ PP, V$DATATYPE D"
+        			+ " WHERE"
+        				+ " U.USER_NAME = ?"
+        				+ " AND PP.PACKAGE_NAME = ?"
+        				+ " AND PP.OBJECT_NAME = ?"
+        				+ " AND U.USER_ID = PP.USER_ID"
+        				+ " AND PP.DATA_TYPE = D.DATA_TYPE"
+        				+ " ORDER BY PARA_ORDER ASC");
+        dbStat.setString(1, pkgSchema);
+        dbStat.setString(2, pkgName);
+        dbStat.setString(3, procName);
         return dbStat;
 	}
 	
