@@ -43,8 +43,9 @@ public class AltibaseProcedurePackaged extends AltibaseProcedureBase {
                 	boolean isFunction  = (JDBCUtils.safeGetInt(dbResult, "SUB_TYPE") == 1);
                     String columnName 	= JDBCUtils.safeGetString(dbResult, "PARA_NAME");
                     int position 		= JDBCUtils.safeGetInt(dbResult, "PARA_ORDER");
-                    int columnSize 		= JDBCUtils.safeGetInt(dbResult, "SIZE");
+                    //int columnSize 		= JDBCUtils.safeGetInt(dbResult, "SIZE"); It's physical size
                     int precision 		= JDBCUtils.safeGetInt(dbResult, "PRECISION");
+                    int columnSize 		= precision;
                     int scale 			= JDBCUtils.safeGetInt(dbResult, "SCALE");
                     
                     int columnTypeNum 	= JDBCUtils.safeGetInt(dbResult, "INOUT_TYPE"); // 0: IN, 1: OUT, 2: IN OUT
