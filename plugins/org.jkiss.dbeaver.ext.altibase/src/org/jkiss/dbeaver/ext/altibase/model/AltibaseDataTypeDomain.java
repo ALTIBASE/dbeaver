@@ -29,50 +29,54 @@ public enum AltibaseDataTypeDomain {
 	DATE 	("DATE", 	 AltibaseConstants.TYPE_DATE,  		DBPDataKind.DATETIME, Types.TIMESTAMP),
 
 	// binary
-	BIT 	("BIT", 	 AltibaseConstants.TYPE_BIT, 		DBPDataKind.BINARY, Types.BINARY),
-	VARBIT 	("VARBIT", 	 AltibaseConstants.TYPE_VARBIT,		DBPDataKind.BINARY, Types.BINARY),
-	BYTE 	("BYTE", 	 AltibaseConstants.TYPE_BYTE, 		DBPDataKind.BINARY, Types.BINARY),
-	VARBYTE ("VARBYTE",  AltibaseConstants.TYPE_VARBYTE,	DBPDataKind.BINARY, Types.BINARY),
-	NIBBLE 	("NIBBLE", 	 AltibaseConstants.TYPE_NIBBLE, 	DBPDataKind.BINARY, Types.BINARY),
-	BINARY 	("BINARY", 	 AltibaseConstants.TYPE_BINARY, 	DBPDataKind.BINARY, Types.BINARY),
+	BIT 	("BIT", 	 AltibaseConstants.TYPE_BIT, 		DBPDataKind.CONTENT, Types.BIT), // STRING, CHAR -> {0}
+	VARBIT 	("VARBIT", 	 AltibaseConstants.TYPE_VARBIT,		DBPDataKind.CONTENT, Types.BIT),
+	BYTE 	("BYTE", 	 AltibaseConstants.TYPE_BYTE, 		DBPDataKind.CONTENT, Types.BINARY),
+	VARBYTE ("VARBYTE",  AltibaseConstants.TYPE_VARBYTE,	DBPDataKind.CONTENT, Types.BINARY),
+	NIBBLE 	("NIBBLE", 	 AltibaseConstants.TYPE_NIBBLE, 	DBPDataKind.CONTENT, Types.BINARY),
+	BINARY 	("BINARY", 	 AltibaseConstants.TYPE_BINARY, 	DBPDataKind.CONTENT, Types.BINARY),
 
 	CLOB 	("CLOB", 	 AltibaseConstants.TYPE_CLOB, 		DBPDataKind.CONTENT, Types.CLOB),
 	BLOB 	("BLOB", 	 AltibaseConstants.TYPE_BLOB, 		DBPDataKind.CONTENT, Types.BLOB),
 	GEOMETRY("GEOMETRY", AltibaseConstants.TYPE_GEOMETRY,	DBPDataKind.CONTENT, Types.VARBINARY); 
 
     private final String name;
-    private final int typeID;
-    private final int valueType;
+    private final int dbTypeID;
+    private final int jdbcTypeID;
     private final DBPDataKind dataKind;
     
 
     AltibaseDataTypeDomain(String name, int typeID, DBPDataKind dataKind, int valueType) {
     	this.name = name;
-    	this.typeID = typeID;
-        this.valueType = valueType;
-        this.dataKind = dataKind;
+    	this.dbTypeID = typeID;
+    	this.dataKind = dataKind;
+        this.jdbcTypeID = valueType;
     }
 
+    public int getDbTypeID() {
+        return dbTypeID;
+    }
+    
     public int getTypeID() {
-        return typeID;
+        return jdbcTypeID;
     }
 
     public int getValueType() {
-        return valueType;
+        return jdbcTypeID;
     }
 
     public DBPDataKind getDataKind() {
         return dataKind;
     }
 
-    public String getName() {
+    public String getTypeName() {
         return name;
     }
 
-    public static AltibaseDataTypeDomain getById(int id) {
+    public static AltibaseDataTypeDomain getByDbTypeId(int id) {
 
         for (AltibaseDataTypeDomain ft : values()) {
-            if (ft.getTypeID() == id) {
+            if (ft.getDbTypeID() == id) {
                 return ft;
             }
         }

@@ -234,6 +234,19 @@
         <manager class="org.jkiss.dbeaver.ext.altibase.edit.AltibaseSequenceManager" 			objectType="org.jkiss.dbeaver.ext.altibase.model.AltibaseSequence"/>
     </extension>
 
+    <extension point="org.jkiss.dbeaver.dataTypeProvider">
+        <provider
+            class="org.jkiss.dbeaver.ext.altibase.data.AltibaseValueHandlerProvider"
+            description="Altibase data types provider"
+            id="org.jkiss.dbeaver.ext.altibase.data.AltibaseValueHandlerProvider"
+            label="Altibase data types provider">
+
+            <datasource id="altibase"/>
+			<type kind="CONTENT"/>
+            <type name="BIT"/>
+            <type name="VARBIT"/>
+        </provider>
+    </extension>
 <!--
     <extension point="org.jkiss.dbeaver.sqlInsertMethod">
         <method id="AltibaseReplaceIgnore" class="org.jkiss.dbeaver.ext.altibase.model.AltibaseInsertReplaceMethod" label="UPDATE OR INSERT INTO" description="Insert replace duplicate key value"/>
