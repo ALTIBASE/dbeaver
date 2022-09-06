@@ -74,7 +74,7 @@ public class AltibaseDataTypeCache extends JDBCBasicDataTypeCache<GenericStructC
                             int minScale = JDBCUtils.safeGetInt(dbResult, "MINIMUM_SCALE");
                             int maxScale = JDBCUtils.safeGetInt(dbResult, "MAXIMUM_SCALE");
 
-                            AltibaseFieldType fieldType = AltibaseFieldType.getById(dataTypeId);
+                            AltibaseDataTypeDomain fieldType = AltibaseDataTypeDomain.getById(dataTypeId);
                             if (fieldType == null) {
                                 log.error("Field type '" + fieldType + "' not found");
                                 continue;

@@ -5,15 +5,15 @@ import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
 
 public class AltibaseDataType extends GenericDataType {
 
-	private AltibaseFieldType fieldType;
+	private AltibaseDataTypeDomain fieldType;
 	private boolean nullable;
 
-    public AltibaseDataType(GenericStructContainer owner, AltibaseFieldType fieldType) {
+    public AltibaseDataType(GenericStructContainer owner, AltibaseDataTypeDomain fieldType) {
     	 super(owner, fieldType.getValueType(), fieldType.getName(), null, false, true, 0, 0, 0);
     	 this.fieldType = fieldType;
     }
     
-	public AltibaseDataType(GenericStructContainer owner, AltibaseFieldType fieldType,
+	public AltibaseDataType(GenericStructContainer owner, AltibaseDataTypeDomain fieldType,
 			String name, String remarks, boolean unsigned, boolean searchable,
 			int precision, int minScale, int maxScale) {
 		super(owner, fieldType.getValueType(), name, remarks, unsigned, searchable, precision, minScale, maxScale);
