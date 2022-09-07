@@ -242,7 +242,7 @@
             label="Altibase data types provider">
 
             <datasource id="altibase"/>
-			<type kind="CONTENT"/>
+			
             <type name="BIT"/>
             <type name="VARBIT"/>
         </provider>

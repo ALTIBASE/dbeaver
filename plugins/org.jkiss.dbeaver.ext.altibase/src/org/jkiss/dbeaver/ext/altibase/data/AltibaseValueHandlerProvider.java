@@ -1,5 +1,7 @@
 package org.jkiss.dbeaver.ext.altibase.data;
 
+import java.sql.Types;
+
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.model.DBPDataSource;
 import org.jkiss.dbeaver.model.data.DBDFormatSettings;
@@ -13,12 +15,9 @@ public class AltibaseValueHandlerProvider implements DBDValueHandlerProvider {
     @Override
 	public DBDValueHandler getValueHandler(DBPDataSource dataSource, DBDFormatSettings preferences,
 			DBSTypedObject typedObject) {
-    	
-    	String typeName = typedObject.getTypeName();
-    	
-		switch (typeName) {
-        case "BIT":
-        case "VARBIT":
+
+		switch (typedObject.getTypeID()) {
+        case Types.BIT:
         	return AltibaseBitSetValueHandler.INSTANCE;
 		}
 

@@ -1,7 +1,12 @@
 package org.jkiss.dbeaver.ext.altibase.model;
 
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jkiss.dbeaver.ext.generic.model.GenericDataType;
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
+import org.jkiss.dbeaver.model.DBPDataKind;
 
 public class AltibaseDataType extends GenericDataType {
 
@@ -47,10 +52,6 @@ public class AltibaseDataType extends GenericDataType {
 	
 	    public DBPDataKind getDataKind() {
 	        return dataKind;
-	    }
-	
-	    public String getName() {
-	        return name;
 	    }
     }
 
