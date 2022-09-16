@@ -6,7 +6,8 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Release-Date: 20220711
 Require-Bundle: org.eclipse.core.runtime,
  org.jkiss.dbeaver.model,
- org.jkiss.dbeaver.ext.generic
+ org.jkiss.dbeaver.ext.generic,
+ org.jkiss.dbeaver.data.gis;bundle-version="1.0.109"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: %Bundle-Vendor

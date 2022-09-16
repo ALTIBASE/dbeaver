@@ -16,47 +16,56 @@
  */
 package org.jkiss.dbeaver.ext.altibase.model;
 
-import java.util.Map;
+import java.util.List;
 
+import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
+import org.jkiss.dbeaver.DBException;
+import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.ext.altibase.AltibaseConstants;
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
 import org.jkiss.dbeaver.ext.generic.model.GenericTable;
+import org.jkiss.dbeaver.ext.generic.model.GenericTableColumn;
 import org.jkiss.dbeaver.model.DBPNamedObject2;
+import org.jkiss.dbeaver.model.data.DBDPseudoAttribute;
 import org.jkiss.dbeaver.model.exec.jdbc.JDBCResultSet;
+import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
+import org.jkiss.utils.CommonUtils;
 
 public class AltibaseTable extends GenericTable implements AltibaseTableBase, DBPNamedObject2 {
+	
+	private static final Log log = Log.getLog(AltibaseTable.class);
 	
     public AltibaseTable(GenericStructContainer container, String tableName, String tableType, JDBCResultSet dbResult) {
 		super(container, tableName, tableType, dbResult);
 	}
-
-	//protected Map<String, String> columnDomainTypes;
     
     @Override
     protected boolean isTruncateSupported() {
         return true;
     }
     
-    /*
     @Override
-    public synchronized List<AltibaseTableColumn> getAttributes(@NotNull DBRProgressMonitor monitor) throws DBException {
-        Collection<? extends GenericTableColumn> childColumns = super.getAttributes(monitor);
-        if (childColumns == null) {
-            return Collections.emptyList();
-        }
-        List<AltibaseTableColumn> columns = new ArrayList<>();
-        for (GenericTableColumn gtc : childColumns) {
-            columns.add((AltibaseTableColumn) gtc);
-        }
-        columns.sort(DBUtils.orderComparator());
-        return columns;
-    }
+    protected void appendSelectSource(DBRProgressMonitor monitor, StringBuilder query, String tableAlias, DBDPseudoAttribute rowIdAttribute) {
+    	try {
 
+    		int i = 0;
+    		for (GenericTableColumn col : CommonUtils.safeCollection(getAttributes(monitor))) {
+    			if (i++ > 0) {
+    				query.append(",");
+    			}
 
-    public String getColumnDomainType(DBRProgressMonitor monitor, AltibaseTableColumn column) throws DBException {
-        if (columnDomainTypes == null) {
-            columnDomainTypes = AltibaseUtils.readColumnDomainTypes(monitor, this);
-        }
-        return columnDomainTypes.get(column.getName());
+    			if (col.getTypeName().equalsIgnoreCase(AltibaseConstants.TYPE_NAME_GEOMETRY)) {
+    				//query.append("ASBINARY(").append((tableAlias != null?tableAlias + ".":"")).append(geoColumn.getName()).append(") as ").append(geoColumn.getName());
+    				query.append("ASEWKT(").append((tableAlias != null?tableAlias + ".":"")).append(col.getName()).append(", 32000) as ").append(col.getName());
+    			} else{
+    				query.append((tableAlias != null?tableAlias + ".":"")).append(col.getName()).append(" as ").append(col.getName());
+    			}
+    		}
+    		return;
+
+    	} catch (DBException e) {
+    		log.warn(e);
+    	}
     }
-	*/
 }

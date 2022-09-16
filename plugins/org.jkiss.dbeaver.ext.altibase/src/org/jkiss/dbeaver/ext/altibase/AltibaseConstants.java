@@ -33,4 +33,6 @@ public class AltibaseConstants {
     public static final int TYPE_VARBIT = -100;
     public static final int TYPE_VARBYTE = 20003;
     public static final int TYPE_VARCHAR = 12;
+    
+    public static final String TYPE_NAME_GEOMETRY = "GEOMETRY";
 }

@@ -245,6 +245,7 @@
 			
             <type name="BIT"/>
             <type name="VARBIT"/>
+            <type name="GEOMETRY"/>
         </provider>
     </extension>
 <!--
