@@ -38,7 +38,7 @@ public enum AltibaseDataTypeDomain {
 
 	CLOB 	("CLOB", 	 AltibaseConstants.TYPE_CLOB, 		DBPDataKind.CONTENT, Types.CLOB),
 	BLOB 	("BLOB", 	 AltibaseConstants.TYPE_BLOB, 		DBPDataKind.CONTENT, Types.BLOB),
-	GEOMETRY("GEOMETRY", AltibaseConstants.TYPE_GEOMETRY,	DBPDataKind.STRING,  Types.BINARY); 
+	GEOMETRY("GEOMETRY", AltibaseConstants.TYPE_GEOMETRY,	DBPDataKind.CONTENT,  Types.BINARY); 
 
     private final String name;
     private final int dbTypeID;
