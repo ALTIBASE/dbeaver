@@ -42,7 +42,7 @@ import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBIcon;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
-import org.jkiss.dbeaver.model.app.DBPPlatformEclipse;
+import org.jkiss.dbeaver.model.app.DBPPlatformDesktop;
 import org.jkiss.dbeaver.runtime.DBWorkbench;
 import org.jkiss.dbeaver.ui.DBeaverIcons;
 import org.jkiss.dbeaver.ui.UIIcon;
@@ -54,9 +54,9 @@ import org.jkiss.dbeaver.ui.editors.sql.handlers.SQLEditorHandlerOpenEditor;
 import org.jkiss.dbeaver.ui.editors.sql.handlers.SQLNavigatorContext;
 import org.jkiss.dbeaver.ui.editors.sql.internal.SQLEditorMessages;
 import org.jkiss.dbeaver.ui.editors.sql.scripts.ScriptsHandlerImpl;
+import org.jkiss.dbeaver.utils.ResourceUtils;
 import org.jkiss.utils.CommonUtils;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -170,7 +170,7 @@ public class ScriptSelectorPanel extends AbstractPopupPanel {
                 IFile scriptFile;
                 try {
                     scriptFile = SQLEditorUtils.createNewScript(
-                        DBPPlatformEclipse.getInstance().getWorkspace().getProject(rootFolder.getProject()),
+                        DBPPlatformDesktop.getInstance().getWorkspace().getProject(rootFolder.getProject()),
                         rootFolder,
                         navigatorContext);
                     SQLEditorHandlerOpenEditor.openResource(scriptFile, navigatorContext);
@@ -261,12 +261,14 @@ public class ScriptSelectorPanel extends AbstractPopupPanel {
 
             @Override
             public String getText(Object element) {
-                final File localFile = ((ResourceInfo) element).getLocalFile();
-                if (localFile.isDirectory()) {
-                    return null;
-                } else {
-                    return sdf.format(new Date(localFile.lastModified()));
+                IResource resource = ((ResourceInfo) element).getResource();
+                if (resource instanceof IFile) {
+                    long lastModified = ResourceUtils.getResourceLastModified(resource);
+                    if (lastModified > 0) {
+                        return sdf.format(new Date(lastModified));
+                    }
                 }
+                return null;
             }
         });
 
@@ -288,23 +290,29 @@ public class ScriptSelectorPanel extends AbstractPopupPanel {
         columnController.addColumn(SQLEditorMessages.script_selector_project_table_folder_label, SQLEditorMessages.script_selector_project_table_folder_description, SWT.LEFT, true, true, new ColumnLabelProvider(){
 
            @Override
-            public String getText(Object element) {
-                final ResourceInfo ri = (ResourceInfo) element;
-                IFolder resourceDefaultRoot = DBPPlatformEclipse.getInstance().getWorkspace().getResourceDefaultRoot(navigatorContext.getProject(), ScriptsHandlerImpl.class, false);
-                String path = ri.getLocalFile().getParentFile().getPath();
-                if (resourceDefaultRoot == null){
-                    return "";
-                }
-                if (ri.getResource() == null) {
-                    return path;
-                }
-                return ri.getResource().getParent().equals(resourceDefaultRoot) ? resourceDefaultRoot.getName() : resourceDefaultRoot.getLocationURI().relativize(new File(path).toURI()).getPath();
-            }
+           public String getText(Object element) {
+               final ResourceInfo ri = (ResourceInfo) element;
+               IFolder resourceDefaultRoot = DBPPlatformDesktop.getInstance().getWorkspace().getResourceDefaultRoot(navigatorContext.getProject(), ScriptsHandlerImpl.class, false);
+               IResource resource = ri.getResource();
+               if (resource == null) {
+                   return null;
+               }
+               if (resourceDefaultRoot == null) {
+                   return resource.getFullPath().removeLastSegments(1).toString();
+               }
+               return resource.getParent().equals(resourceDefaultRoot) ?
+                   null : //resourceDefaultRoot.getName() :
+                   resource
+                       .getFullPath()
+                       .removeLastSegments(1)
+                       .makeRelativeTo(resourceDefaultRoot.getFullPath())
+                       .toString();
+           }
 
             @Override
             public String getToolTipText(Object element) {
                 final ResourceInfo ri = (ResourceInfo) element;
-                return ri.getLocalFile().getPath();
+                return ri.getLocalFile() == null ? null : ri.getLocalFile().getPath();
             }
         });
         columnController.autoSizeColumns();

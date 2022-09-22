@@ -22,6 +22,7 @@ import org.jkiss.code.NotNull;
 import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.Log;
+import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.connection.DBPNativeClientLocation;
 import org.jkiss.dbeaver.model.runtime.AbstractJob;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
@@ -207,6 +208,23 @@ public final class RuntimeUtils {
         }
     }
 
+    public static java.nio.file.Path getLocalPathFromURL(URL fileURL) throws IOException {
+        // Escape spaces to avoid URI syntax error
+        try {
+            URI filePath = GeneralUtils.makeURIFromFilePath(fileURL.toString());
+            /*
+                File can't accept URI with file authority in it. This created a problem for shared folders.
+                see dbeaver#15117
+             */
+            if (filePath.getAuthority() != null) {
+                return java.nio.file.Path.of(filePath.getSchemeSpecificPart());
+            }
+            return java.nio.file.Path.of(filePath);
+        } catch (URISyntaxException e) {
+            throw new IOException("Bad local file path: " + fileURL, e);
+        }
+    }
+
     public static boolean runTask(final DBRRunnableWithProgress task, String taskName, final long waitTime) {
         return runTask(task, taskName, waitTime, false);
     }
@@ -300,6 +318,19 @@ public final class RuntimeUtils {
 
     public static boolean isWindows() {
         return IS_WINDOWS;
+    }
+
+
+    /**
+     * Checks if current application is shipped from Windows store
+     * @return true if shipped from Windows store, false if not.
+     */
+    public static boolean isWindowsStoreApplication() {
+        if (!IS_WINDOWS) {
+            return false;
+        }
+        final String property = System.getProperty(DBConstants.IS_WINDOWS_STORE_APP);
+        return property != null && property.equalsIgnoreCase("true");
     }
 
     public static boolean isMacOS() {

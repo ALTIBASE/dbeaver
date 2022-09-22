@@ -262,13 +262,14 @@ public class DatabaseMappingAttribute implements DatabaseMappingObject {
         }
         DBSObjectContainer container = parent.getSettings().getContainer();
 
+        if (container != null && !DBUtils.isQuotedIdentifier(container.getDataSource(), name)) {
+            name = DBObjectNameCaseTransformer.transformName(container.getDataSource(), name);
+        }
+
         if (container != null && !CommonUtils.isEmpty(name) && quoteIdentifier) {
             name = DBUtils.getQuotedIdentifier(container.getDataSource(), name);
         }
 
-        if (container != null && !DBUtils.isQuotedIdentifier(container.getDataSource(), name)) {
-            name = DBObjectNameCaseTransformer.transformName(container.getDataSource(), name);
-        }
         return name;
     }
 
@@ -347,8 +348,13 @@ public class DatabaseMappingAttribute implements DatabaseMappingObject {
                 if (!CommonUtils.isEmpty(targetName)) {
                     DBSDataManipulator targetEntity = parent.getTarget();
                     if (targetEntity instanceof DBSEntity) {
-                        this.target = ((DBSEntity) targetEntity).getAttribute(new VoidProgressMonitor(),
-                            DBUtils.getUnQuotedIdentifier(((DBSEntity) targetEntity).getDataSource(), targetName));
+                        DBSEntity dbsEntity = (DBSEntity) targetEntity;
+                        if (dbsEntity.getDataSource() != null) {
+                            this.target = CommonUtils.findBestCaseAwareMatch(
+                                CommonUtils.safeCollection(dbsEntity.getAttributes(new VoidProgressMonitor())),
+                                DBUtils.getUnQuotedIdentifier(dbsEntity.getDataSource(), targetName),
+                                DBSEntityAttribute::getName);
+                        }
                     }
                 }
 

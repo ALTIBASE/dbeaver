@@ -16,9 +16,7 @@
  */
 package org.jkiss.dbeaver.model.navigator;
 
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileInfo;
-import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.internal.resources.Resource;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.*;
 import org.jkiss.code.NotNull;
@@ -29,13 +27,15 @@ import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBIcon;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
 import org.jkiss.dbeaver.model.DBPImage;
-import org.jkiss.dbeaver.model.app.DBPPlatformEclipse;
+import org.jkiss.dbeaver.model.app.DBPPlatformDesktop;
 import org.jkiss.dbeaver.model.app.DBPResourceHandler;
+import org.jkiss.dbeaver.model.fs.DBFRemoteFileStore;
 import org.jkiss.dbeaver.model.fs.nio.NIOResource;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.dbeaver.model.runtime.AbstractJob;
 import org.jkiss.dbeaver.model.runtime.DBRProgressMonitor;
 import org.jkiss.dbeaver.utils.GeneralUtils;
+import org.jkiss.dbeaver.utils.ResourceUtils;
 import org.jkiss.utils.ArrayUtils;
 import org.jkiss.utils.CommonUtils;
 
@@ -108,24 +108,33 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
     }
 
     @Override
-    public String getNodeType()
-    {
-        return handler == null ? null :handler.getTypeName(resource);
+    public String getNodeType() {
+        return handler == null ? getResourceNodeType() : handler.getTypeName(resource);
+    }
+
+    protected String getResourceNodeType() {
+        return "resource";
     }
 
     @Override
     @Property(id = DBConstants.PROP_ID_NAME, viewable = true, order = 1)
-    public String getNodeName()
-    {
+    public String getNodeName() {
         if (resource == null || handler == null) {
             return null;
         }
-        return handler.getResourceNodeName(resource);
-//        if (resource instanceof IFile) {
-//
-//        }
-//        return resource.getFullPath().lastSegment();
+        return resource.getName();
     }
+
+/*
+    @Override
+    protected String getSortName() {
+        if (resource == null || handler == null) {
+            return null;
+        }
+        return resource.getFullPath().removeFileExtension().lastSegment();
+    }
+*/
+
 
     @Override
 //    @Property(viewable = false, order = 100)
@@ -235,9 +244,7 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
     }
 
     private DBNNode makeNode(IResource resource) {
-        boolean isRootResource =
-            CommonUtils.equalObjects(resource.getParent(), getOwnerProject().getRootResource()) ||
-                CommonUtils.equalObjects(resource.getParent(), getOwnerProject().getEclipseProject());
+        boolean isRootResource = isRootResource(resource);
         if (isRootResource && resource.getName().startsWith(".")) {
             // Skip project config
             return null;
@@ -247,7 +254,7 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
                 // Sub folder
                 return handler.makeNavigatorNode(this, resource);
             }
-            DBPResourceHandler resourceHandler = DBPPlatformEclipse.getInstance().getWorkspace().getResourceHandler(resource);
+            DBPResourceHandler resourceHandler = DBPPlatformDesktop.getInstance().getWorkspace().getResourceHandler(resource);
             if (resourceHandler == null) {
                 log.debug("Skip resource '" + resource.getName() + "'");
                 return null;
@@ -260,6 +267,11 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
         }
     }
 
+    public boolean isRootResource(IResource resource) {
+        return CommonUtils.equalObjects(resource.getParent(), getOwnerProject().getRootResource()) ||
+                CommonUtils.equalObjects(resource.getParent(), getOwnerProject().getEclipseProject());
+    }
+
     @Override
     public boolean isManagable()
     {
@@ -269,8 +281,22 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
     @Override
     public DBNNode refreshNode(DBRProgressMonitor monitor, Object source) throws DBException
     {
-        children = null;
+        if (children != null) {
+//            for (DBNNode child : children) {
+//                child.dispose(false);
+//            }
+            children = null;
+        }
+        refreshThisResource(monitor);
+        return this;
+    }
+
+    protected void refreshThisResource(DBRProgressMonitor monitor) throws DBException {
+        if (resource == null) {
+            return;
+        }
         try {
+            refreshFileStore(monitor);
             resource.refreshLocal(IResource.DEPTH_INFINITE, monitor.getNestedMonitor());
 
             IPath resourceLocation = resource.getLocation();
@@ -281,7 +307,15 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
         } catch (CoreException e) {
             throw new DBException("Can't refresh resource", e);
         }
-        return this;
+    }
+
+    protected void refreshFileStore(@NotNull DBRProgressMonitor monitor) throws DBException {
+        if (resource instanceof Resource) {
+            final DBFRemoteFileStore remoteFileStore = GeneralUtils.adapt(((Resource) resource).getStore(), DBFRemoteFileStore.class);
+            if (remoteFileStore != null) {
+                remoteFileStore.refresh(monitor);
+            }
+        }
     }
 
     @Override
@@ -380,6 +414,7 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
                                         true,
                                         monitor.getNestedMonitor());
                                 }
+                                refreshFileStore(monitor);
                                 resource.refreshLocal(IResource.DEPTH_ONE, monitor.getNestedMonitor());
                             } catch (CoreException e) {
                                 throw new DBException("Can't copy " + otherResource.getName() + " to " + resource.getName(), e);
@@ -428,7 +463,7 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
                         return 1;
                     }
                 }
-                return o1.getNodeName().compareToIgnoreCase(o2.getNodeName());
+                return o1.getSortName().compareToIgnoreCase(o2.getSortName());
             }
         });
     }
@@ -476,7 +511,7 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
     }
 
     public void refreshResourceState(Object source) {
-        DBPResourceHandler newHandler = DBPPlatformEclipse.getInstance().getWorkspace().getResourceHandler(resource);
+        DBPResourceHandler newHandler = DBPPlatformDesktop.getInstance().getWorkspace().getResourceHandler(resource);
         if (newHandler != handler) {
             handler = newHandler;
         }
@@ -557,9 +592,7 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
     @Property(viewable = true, order = 11)
     public String getResourceSize() throws CoreException {
         if (resource instanceof IFile) {
-            IFileStore fileStore = EFS.getStore(resource.getLocationURI());
-            IFileInfo iFileInfo = fileStore.fetchInfo();
-            return numberFormat.format(iFileInfo.getLength());
+            return numberFormat.format(ResourceUtils.getFileLength(resource));
         }
         return null;
     }
@@ -567,9 +600,8 @@ public class DBNResource extends DBNNode implements DBNNodeWithResource// implem
     @Property(viewable = true, order = 11)
     public String getResourceLastModified() throws CoreException {
         if (resource instanceof IFile) {
-            IFileStore fileStore = EFS.getStore(resource.getLocationURI());
-            IFileInfo iFileInfo = fileStore.fetchInfo();
-            return DATE_FORMAT.format(iFileInfo.getLastModified());
+            long lastModified = ResourceUtils.getResourceLastModified(resource);
+            return lastModified <= 0 ? "" : DATE_FORMAT.format(lastModified);
         }
         return null;
     }

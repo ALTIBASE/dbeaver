@@ -17,6 +17,7 @@
 package org.jkiss.dbeaver.registry;
 
 import org.jkiss.code.NotNull;
+import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.Log;
 import org.jkiss.dbeaver.model.DBPDataSourceConfigurationStorage;
 import org.jkiss.dbeaver.model.app.DBPDataSourceRegistry;
@@ -111,18 +112,22 @@ public class DataSourceConfigurationManagerNIO implements DataSourceConfiguratio
     @Override
     public InputStream readConfiguration(@NotNull String name) throws IOException {
         Path path = getConfigurationPath(false).resolve(name);
-        if (!Files.exists(path)) {
+        if (Files.notExists(path)) {
+            // maybe it's .dbeaver-data-sources*.xml in the project folder (DBeaver < 6.1.3 (Legacy))
+            path = project.getAbsolutePath().resolve(name);
+        }
+        if (Files.notExists(path)) {
             return null;
         }
         return Files.newInputStream(path);
     }
 
     @Override
-    public void writeConfiguration(@NotNull String name, @NotNull byte[] data) throws IOException {
+    public void writeConfiguration(@NotNull String name, @Nullable byte[] data) throws IOException {
         Path configFile = getConfigurationPath(true).resolve(name);
         ContentUtils.makeFileBackup(configFile);
 
-        if (data.length == 0) {
+        if (data == null || data.length == 0) {
             if (Files.exists(configFile)) {
                 try {
                     Files.delete(configFile);

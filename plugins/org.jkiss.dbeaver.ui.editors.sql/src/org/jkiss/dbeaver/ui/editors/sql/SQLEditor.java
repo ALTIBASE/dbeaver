@@ -35,6 +35,7 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
@@ -56,9 +57,9 @@ import org.jkiss.code.Nullable;
 import org.jkiss.dbeaver.DBException;
 import org.jkiss.dbeaver.ModelPreferences;
 import org.jkiss.dbeaver.model.*;
-import org.jkiss.dbeaver.model.app.DBPPlatformEclipse;
+import org.jkiss.dbeaver.model.app.DBPPlatformDesktop;
 import org.jkiss.dbeaver.model.app.DBPProject;
-import org.jkiss.dbeaver.model.app.DBPWorkspaceEclipse;
+import org.jkiss.dbeaver.model.app.DBPWorkspaceDesktop;
 import org.jkiss.dbeaver.model.data.DBDAttributeBinding;
 import org.jkiss.dbeaver.model.data.DBDDataFilter;
 import org.jkiss.dbeaver.model.data.DBDDataReceiver;
@@ -114,6 +115,7 @@ import org.jkiss.dbeaver.ui.editors.text.ScriptPositionColumn;
 import org.jkiss.dbeaver.ui.navigator.INavigatorModelView;
 import org.jkiss.dbeaver.utils.GeneralUtils;
 import org.jkiss.dbeaver.utils.PrefUtils;
+import org.jkiss.dbeaver.utils.ResourceUtils;
 import org.jkiss.dbeaver.utils.RuntimeUtils;
 import org.jkiss.utils.ArrayUtils;
 import org.jkiss.utils.CommonUtils;
@@ -195,7 +197,7 @@ public class SQLEditor extends SQLEditorBase implements
     private volatile DBPContextProvider executionContextProvider;
     private SQLScriptContext globalScriptContext;
     private volatile boolean syntaxLoaded = false;
-    private final FindReplaceTarget findReplaceTarget = new FindReplaceTarget();
+    private FindReplaceTarget findReplaceTarget = new FindReplaceTarget();
     private final List<SQLQuery> runningQueries = new ArrayList<>();
     private QueryResultsContainer curResultsContainer;
     private Image editorImage;
@@ -261,7 +263,7 @@ public class SQLEditor extends SQLEditorBase implements
     }
     
     public void setConsoleViewOutputEnabled(boolean value) {
-        isResultSetAutoFocusEnabled = value;
+        isResultSetAutoFocusEnabled = !value;
     }
 
     @Override
@@ -302,7 +304,7 @@ public class SQLEditor extends SQLEditorBase implements
     {
         IFile file = EditorUtils.getFileFromInput(getEditorInput());
         return file == null ?
-            DBWorkbench.getPlatform().getWorkspace().getActiveProject() : DBPPlatformEclipse.getInstance().getWorkspace().getProject(file.getProject());
+            DBWorkbench.getPlatform().getWorkspace().getActiveProject() : DBPPlatformDesktop.getInstance().getWorkspace().getProject(file.getProject());
     }
 
     @Nullable
@@ -1604,7 +1606,7 @@ public class SQLEditor extends SQLEditorBase implements
     }
     
     private void setResultTabSelection(CTabItem item) {
-        if (!isResultSetAutoFocusEnabled || resultTabs.getItemCount() == 1 || !(item.getData() instanceof QueryResultsContainer)) {
+        if (isResultSetAutoFocusEnabled || !(item.getData() instanceof QueryResultsContainer)) {
             resultTabs.setSelection(item);
         }
     }
@@ -1682,6 +1684,7 @@ public class SQLEditor extends SQLEditorBase implements
                         log.error("Error creating presentation", e);
                     }
                 }
+                getSite().setSelectionProvider(extraPresentation.getSelectionProvider());
                 if (maximize) {
                     stackLayout.topControl = getExtraPresentationControl();
                     getExtraPresentationControl().setFocus();
@@ -2450,7 +2453,7 @@ public class SQLEditor extends SQLEditorBase implements
             // 1. The user is not executing query in a new tab
             // 2. The user is executing script that may open several result sets
             //    and replace current tab on single query execution option is not set
-            if (!isResultSetAutoFocusEnabled && !newTab && (!isSingleQuery || (isSingleQuery && !replaceCurrentTab))) {
+            if (isResultSetAutoFocusEnabled && !newTab && (!isSingleQuery || (isSingleQuery && !replaceCurrentTab))) {
                 int tabsClosed = closeExtraResultTabs(null, true, false);
                 if (tabsClosed == IDialogConstants.CANCEL_ID) {
                     return false;
@@ -2628,11 +2631,14 @@ public class SQLEditor extends SQLEditorBase implements
             return;
         }
 
+        DBPDataSourceContainer dsContainer = getDataSourceContainer();
+        
         if (resultTabs != null) {
             DatabaseEditorUtils.setPartBackground(this, resultTabs);
-            resultsSash.setBackground(resultTabs.getBackground());
-            topBarMan.getControl().setBackground(resultTabs.getBackground());
-            bottomBarMan.getControl().setBackground(resultTabs.getBackground());
+            Color bgColor = dsContainer == null ? null : UIUtils.getConnectionColor(dsContainer.getConnectionConfiguration());
+            resultsSash.setBackground(bgColor);
+            topBarMan.getControl().setBackground(bgColor);
+            bottomBarMan.getControl().setBackground(bgColor);
         }
 
         if (getSourceViewerConfiguration() instanceof SQLEditorSourceViewerConfiguration) {
@@ -2667,8 +2673,7 @@ public class SQLEditor extends SQLEditorBase implements
             reloadSyntaxRules();
         }
 
-        DBPDataSourceContainer dataSourceContainer = getDataSourceContainer();
-        if (dataSourceContainer == null) {
+        if (dsContainer == null) {
             resultsSash.setMaximizedControl(sqlEditorPanel);
         } else {
             if (curQueryProcessor != null && curQueryProcessor.getFirstResults().hasData()) {
@@ -2681,8 +2686,8 @@ public class SQLEditor extends SQLEditorBase implements
 
         loadActivePreferenceSettings();
 
-        if (dataSourceContainer != null) {
-            globalScriptContext.loadVariables(dataSourceContainer.getDriver(), null);
+        if (dsContainer != null) {
+            globalScriptContext.loadVariables(dsContainer.getDriver(), null);
         } else {
             globalScriptContext.clearVariables();
         }
@@ -2738,12 +2743,8 @@ public class SQLEditor extends SQLEditorBase implements
         if (emptyScriptCloseBehavior == SQLPreferenceConstants.EmptyScriptCloseBehavior.NOTHING) {
             return;
         }
-        IPath location = sqlFile.getLocation();
-        if (location == null) {
-            return;
-        }
-        File osFile = location.toFile();
-        if (!osFile.exists() || osFile.length() != 0) {
+
+        if (!sqlFile.exists() || ResourceUtils.getFileLength(sqlFile) != 0) {
             // Not empty
             return;
         }
@@ -2765,10 +2766,12 @@ public class SQLEditor extends SQLEditorBase implements
             }
             // This file is empty and never (at least during this session) had any contents.
             // Drop it.
-            log.debug("Delete empty SQL script '" + sqlFile.getFullPath().toOSString() + "'");
-            sqlFile.delete(true, monitor);
+            if (sqlFile.exists()) {
+                log.debug("Delete empty SQL script '" + sqlFile.getFullPath().toOSString() + "'");
+                sqlFile.delete(true, monitor);
+            }
         } catch (Exception e) {
-            log.error("Can't delete empty script file", e); //$NON-NLS-1$
+            log.error("Error deleting empty script file", e); //$NON-NLS-1$
         }
     }
 
@@ -2952,13 +2955,15 @@ public class SQLEditor extends SQLEditorBase implements
         if (inputFile != null) {
             return inputFile.getParent();
         }
-        final DBPWorkspaceEclipse workspace = ((DBPWorkspaceEclipse) DBWorkbench.getPlatform().getWorkspace());
+        final DBPWorkspaceDesktop workspace = DBPPlatformDesktop.getInstance().getWorkspace();
         final IFolder root = workspace.getResourceDefaultRoot(workspace.getActiveProject(), ScriptsHandlerImpl.class, false);
         if (root != null) {
-            return new File(root.getLocationURI()).toString();
-        } else {
-            return null;
+            URI locationURI = root.getLocationURI();
+            if (locationURI.getScheme().equals("file")) {
+                return new File(locationURI).toString();
+            }
         }
+        return null;
     }
 
     @Nullable
@@ -3934,7 +3939,7 @@ public class SQLEditor extends SQLEditorBase implements
                         return;
                     }
                     if (getActivePreferenceStore().getBoolean(SQLPreferenceConstants.MAXIMIZE_EDITOR_ON_SCRIPT_EXECUTE)
-                        && !isResultSetAutoFocusEnabled) {
+                        && isResultSetAutoFocusEnabled) {
                         resultsSash.setMaximizedControl(sqlEditorPanel);
                     }
                     clearProblems(null);
@@ -4048,6 +4053,7 @@ public class SQLEditor extends SQLEditorBase implements
             } else if (!scriptMode && getActivePreferenceStore().getBoolean(SQLPreferenceConstants.RESET_CURSOR_ON_EXECUTE)) {
                 selectionProvider.setSelection(originalSelection);
             }
+            notifyOnQueryResultListeners(curResultsContainer, result);
             // Get results window (it is possible that it was closed till that moment
             {
                 for (QueryResultsContainer cr : queryProcessor.resultContainers) {
@@ -4067,6 +4073,11 @@ public class SQLEditor extends SQLEditorBase implements
                     int resultsIndex = 0;
                     for (QueryResultsContainer results : queryProcessor.resultContainers) {
                         if (results.query != query) {
+                            // This happens when query results is statistics tab
+                            // in that case we need to update tab selection and
+                            // select new statistics tab
+                            // see #16605
+                            setResultTabSelection(results.resultsTab);
                             continue;
                         }
                         if (resultsIndex < result.getExecuteResults().size()) {
@@ -4140,35 +4151,31 @@ public class SQLEditor extends SQLEditorBase implements
     }
 
     private class FindReplaceTarget extends DynamicFindReplaceTarget {
-        private boolean lastFocusInEditor = true;
+        private IFindReplaceTarget previousTarget = null;
         @Override
         public IFindReplaceTarget getTarget() {
+            //getTarget determines current composite used for find/replace
+            //We should update it, when we focus on the other panels or output view
             ResultSetViewer rsv = getActiveResultSetViewer();
             TextViewer textViewer = getTextViewer();
             boolean focusInEditor = textViewer != null && textViewer.getTextWidget() != null && textViewer.getTextWidget().isFocusControl();
-
-            CTabItem activeResultsTab = getActiveResultsTab();
-            if (activeResultsTab != null && activeResultsTab.getData() instanceof StyledText) {
-                StyledText styledText = (StyledText) activeResultsTab.getData();
-                if (!focusInEditor) {
-                    return new StyledTextFindReplaceTarget(styledText);
-                }
-            }
-
             if (!focusInEditor) {
-                if (rsv != null && rsv.getActivePresentation().getControl().isFocusControl()) {
-                    focusInEditor = false;
-                } else {
-                    focusInEditor = lastFocusInEditor;
+                if (rsv == null && !outputViewer.getText().isFocusControl() && previousTarget != null) {
+                    focusInEditor = textViewer != null && previousTarget.equals(textViewer.getFindReplaceTarget());
                 }
             }
-            lastFocusInEditor = focusInEditor;
-            if (!focusInEditor && rsv != null) {
-                return rsv.getAdapter(IFindReplaceTarget.class);
-            } else if (textViewer != null) {
-                return textViewer.getFindReplaceTarget();
+            if (!focusInEditor) {
+                //Focus is on presentation we need to find a class for it
+                if (rsv != null && rsv.getActivePresentation().getControl().isFocusControl()) {
+                    previousTarget = rsv.getAdapter(IFindReplaceTarget.class);
+                } else if (outputViewer.getControl().isFocusControl()) {
+                    //Output viewer is just StyledText we use StyledTextFindReplace
+                    previousTarget = new StyledTextFindReplaceTarget(outputViewer.getText());
+                }
+            } else {
+                previousTarget = textViewer.getFindReplaceTarget();
             }
-            return null;
+            return previousTarget;
         }
     }
 
@@ -4467,21 +4474,43 @@ public class SQLEditor extends SQLEditorBase implements
 
     }
     
-    private void notifyOnDataListeners(QueryResultsContainer container) {
-        DBCExecutionContext context = container.getExecutionContext();
-        DBPPreferenceStore contextPrefStore = context != null
-            ? context.getDataSource().getContainer().getPreferenceStore()
-            : DBWorkbench.getPlatform().getPreferenceStore();
-
+    private void notifyOnDataListeners(@NotNull QueryResultsContainer container) {
         // Notify listeners
         synchronized (listeners) {
             for (SQLEditorListener listener : listeners) {
                 try {
-                    listener.onDataReceived(contextPrefStore, container.getResultSetController().getModel(), container.getName());
+                    listener.onDataReceived(
+                        getContextPrefStore(container), 
+                        container.getResultSetController().getModel(), 
+                        container.getQuery().getOriginalText()
+                    );
                 } catch (Throwable ex) {
-                    ex.printStackTrace();
+                    log.error(ex);
                 }
             }
         }
+    }
+
+
+    private void notifyOnQueryResultListeners(@NotNull QueryResultsContainer container, @NotNull SQLQueryResult result) {
+        // Notify listeners
+        synchronized (listeners) {
+            for (SQLEditorListener listener : listeners) {
+                try {
+                    listener.onQueryResult(getContextPrefStore(container), result);
+                } catch (Throwable ex) {
+                    log.error(ex);
+                }
+            }
+        }
+    }
+
+    @NotNull
+    private DBPPreferenceStore getContextPrefStore(@NotNull QueryResultsContainer container) {
+        DBCExecutionContext context = container.getExecutionContext();
+        DBPPreferenceStore contextPrefStore = context != null
+            ? context.getDataSource().getContainer().getPreferenceStore()
+            : DBWorkbench.getPlatform().getPreferenceStore();
+        return contextPrefStore;
     }
 }

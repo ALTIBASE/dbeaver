@@ -29,6 +29,7 @@ import org.jkiss.dbeaver.model.preferences.DBPPreferenceStore;
 import org.jkiss.dbeaver.ui.UIUtils;
 import org.jkiss.dbeaver.ui.controls.resultset.ResultSetPreferences;
 import org.jkiss.dbeaver.ui.controls.resultset.spreadsheet.Spreadsheet;
+import org.jkiss.dbeaver.ui.editors.EditorUtils;
 import org.jkiss.dbeaver.ui.editors.data.internal.DataEditorsMessages;
 import org.jkiss.dbeaver.ui.preferences.TargetPrefPage;
 import org.jkiss.dbeaver.utils.PrefUtils;
@@ -53,6 +54,7 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
     private Button gridShowAttrFilters;
     private Button gridShowAttrOrder;
     private Button useSmoothScrolling;
+    private Button showCollectionInline;
     private Button showBooleanAsCheckbox;
     private Button showWhitespaceCharacters;
     private Button toggleBooleanOnClick;
@@ -78,6 +80,7 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
             store.contains(ResultSetPreferences.RESULT_SET_SHOW_ATTR_FILTERS) ||
             store.contains(ResultSetPreferences.RESULT_SET_SHOW_ATTR_ORDERING) ||
             store.contains(ResultSetPreferences.RESULT_SET_USE_SMOOTH_SCROLLING) ||
+            store.contains(ResultSetPreferences.RESULT_SET_SHOW_COLLECTIONS_INLINE) ||
             store.contains(ResultSetPreferences.RESULT_SET_SHOW_BOOLEAN_AS_CHECKBOX) ||
             store.contains(ResultSetPreferences.RESULT_SET_SHOW_WHITESPACE_CHARACTERS) ||
             store.contains(ResultSetPreferences.RESULT_SET_CLICK_TOGGLE_BOOLEAN) ||
@@ -118,6 +121,9 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
             gridShowAttrOrder = UIUtils.createCheckbox(appearanceGroup,
                 DataEditorsMessages.pref_page_database_resultsets_label_show_attr_ordering,
                 DataEditorsMessages.pref_page_database_resultsets_label_show_attr_ordering_tip, false, 2);
+            showCollectionInline = UIUtils.createCheckbox(appearanceGroup,
+                DataEditorsMessages.pref_page_database_resultsets_label_show_collections_inline,
+                DataEditorsMessages.pref_page_database_resultsets_label_show_collections_inline_tip, false, 2);
             showBooleanAsCheckbox = UIUtils.createCheckbox(appearanceGroup,
                 DataEditorsMessages.pref_page_database_resultsets_label_show_boolean_as_checkbox,
                 DataEditorsMessages.pref_page_database_resultsets_label_show_boolean_as_checkbox_tip, false, 2);
@@ -129,6 +135,11 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
             maxDefColumnWidth.setToolTipText(
                 DataEditorsMessages.pref_page_database_resultsets_label_max_def_column_width_tip);
             maxDefColumnWidth.addVerifyListener(UIUtils.getIntegerVerifyListener(Locale.getDefault()));
+            
+            new PreferenceLinkArea(appearanceGroup, SWT.NONE,
+                EditorUtils.COLORS_AND_FONTS_PAGE_ID,
+                DataEditorsMessages.pref_page_database_resultsets_link_colors_and_fonts,
+                (IWorkbenchPreferenceContainer) getContainer(), null); //$NON-NLS-1$
 
             final Group behaviorGroup = UIUtils.createControlGroup(uiGroup,
                 DataEditorsMessages.pref_page_database_resultsets_group_behavior, 2,
@@ -189,6 +200,7 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
             gridShowAttrFilters.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_SHOW_ATTR_FILTERS));
             gridShowAttrOrder.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_SHOW_ATTR_ORDERING));
             useSmoothScrolling.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_USE_SMOOTH_SCROLLING));
+            showCollectionInline.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_SHOW_COLLECTIONS_INLINE));
             showBooleanAsCheckbox.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_SHOW_BOOLEAN_AS_CHECKBOX));
             showWhitespaceCharacters.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_SHOW_WHITESPACE_CHARACTERS));
             toggleBooleanOnClick.setSelection(store.getBoolean(ResultSetPreferences.RESULT_SET_CLICK_TOGGLE_BOOLEAN));
@@ -219,6 +231,7 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
             store.setValue(ResultSetPreferences.RESULT_SET_SHOW_ATTR_FILTERS, gridShowAttrFilters.getSelection());
             store.setValue(ResultSetPreferences.RESULT_SET_SHOW_ATTR_ORDERING, gridShowAttrOrder.getSelection());
             store.setValue(ResultSetPreferences.RESULT_SET_USE_SMOOTH_SCROLLING, useSmoothScrolling.getSelection());
+            store.setValue(ResultSetPreferences.RESULT_SET_SHOW_COLLECTIONS_INLINE, showCollectionInline.getSelection());
             store.setValue(ResultSetPreferences.RESULT_SET_SHOW_BOOLEAN_AS_CHECKBOX, showBooleanAsCheckbox.getSelection());
             store.setValue(ResultSetPreferences.RESULT_SET_SHOW_WHITESPACE_CHARACTERS, showWhitespaceCharacters.getSelection());
             store.setValue(ResultSetPreferences.RESULT_SET_CLICK_TOGGLE_BOOLEAN, toggleBooleanOnClick.getSelection());
@@ -246,6 +259,7 @@ public class PrefPageResultSetPresentationGrid extends TargetPrefPage
         store.setToDefault(ResultSetPreferences.RESULT_SET_SHOW_ATTR_FILTERS);
         store.setToDefault(ResultSetPreferences.RESULT_SET_SHOW_ATTR_ORDERING);
         store.setToDefault(ResultSetPreferences.RESULT_SET_USE_SMOOTH_SCROLLING);
+        store.setToDefault(ResultSetPreferences.RESULT_SET_SHOW_COLLECTIONS_INLINE);
         store.setToDefault(ResultSetPreferences.RESULT_SET_SHOW_BOOLEAN_AS_CHECKBOX);
         store.setToDefault(ResultSetPreferences.RESULT_SET_SHOW_WHITESPACE_CHARACTERS);
         store.setToDefault(ResultSetPreferences.RESULT_SET_CLICK_TOGGLE_BOOLEAN);

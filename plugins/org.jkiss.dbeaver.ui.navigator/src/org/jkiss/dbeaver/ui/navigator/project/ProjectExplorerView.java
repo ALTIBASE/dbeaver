@@ -16,13 +16,8 @@
  */
 package org.jkiss.dbeaver.ui.navigator.project;
 
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileInfo;
-import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -30,7 +25,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.jkiss.dbeaver.model.DBConstants;
 import org.jkiss.dbeaver.model.DBPDataSourceContainer;
-import org.jkiss.dbeaver.model.app.DBPPlatformEclipse;
+import org.jkiss.dbeaver.model.app.DBPPlatformDesktop;
 import org.jkiss.dbeaver.model.app.DBPProject;
 import org.jkiss.dbeaver.model.app.DBPProjectListener;
 import org.jkiss.dbeaver.model.navigator.*;
@@ -39,6 +34,7 @@ import org.jkiss.dbeaver.ui.*;
 import org.jkiss.dbeaver.ui.controls.ViewerColumnController;
 import org.jkiss.dbeaver.ui.internal.UINavigatorMessages;
 import org.jkiss.dbeaver.ui.project.PrefPageProjectResourceSettings;
+import org.jkiss.dbeaver.utils.ResourceUtils;
 import org.jkiss.utils.CommonUtils;
 
 import java.text.DecimalFormat;
@@ -59,7 +55,7 @@ public class ProjectExplorerView extends DecoratedProjectView implements DBPProj
     private final NumberFormat sizeFormat = new DecimalFormat();
 
     public ProjectExplorerView() {
-        DBPPlatformEclipse.getInstance().getWorkspace().addProjectListener(this);
+        DBPPlatformDesktop.getInstance().getWorkspace().addProjectListener(this);
     }
 
     @Override
@@ -216,14 +212,8 @@ public class ProjectExplorerView extends DecoratedProjectView implements DBPProj
                     public String getText(Object element) {
                         if (element instanceof DBNResource) {
                             IResource resource = ((DBNResource) element).getResource();
-                            if (resource instanceof IFile) {
-                                try {
-                                    IFileStore fileStore = EFS.getStore(resource.getLocationURI());
-                                    IFileInfo iFileInfo = fileStore.fetchInfo();
-                                    return sizeFormat.format(iFileInfo.getLength());
-                                } catch (CoreException e) {
-                                    return e.getMessage();
-                                }
+                            if (resource instanceof IFile && resource.exists()) {
+                                return sizeFormat.format(ResourceUtils.getFileLength(resource));
                             }
                         }
                         return "";
@@ -239,8 +229,8 @@ public class ProjectExplorerView extends DecoratedProjectView implements DBPProj
                     public String getText(Object element) {
                         if (element instanceof DBNResource) {
                             IResource resource = ((DBNResource) element).getResource();
-                            if (resource instanceof IFile || resource instanceof IFolder) {
-                                long lastModified = resource.getLocation().toFile().lastModified();
+                            if (resource != null && resource.exists()) {
+                                long lastModified = ResourceUtils.getResourceLastModified(resource);
                                 if (lastModified <= 0) {
                                     return "";
                                 }
@@ -258,9 +248,11 @@ public class ProjectExplorerView extends DecoratedProjectView implements DBPProj
                     public String getText(Object element) {
                         if (element instanceof DBNResource) {
                             IResource resource = ((DBNResource) element).getResource();
-                            ProgramInfo program = ProgramInfo.getProgram(resource);
-                            if (program != null) {
-                                return program.getProgram().getName();
+                            if (resource.exists()) {
+                                ProgramInfo program = ProgramInfo.getProgram(resource);
+                                if (program != null) {
+                                    return program.getProgram().getName();
+                                }
                             }
                         }
                         return "";
@@ -276,7 +268,7 @@ public class ProjectExplorerView extends DecoratedProjectView implements DBPProj
 
     @Override
     public void dispose() {
-        DBPPlatformEclipse.getInstance().getWorkspace().removeProjectListener(this);
+        DBPPlatformDesktop.getInstance().getWorkspace().removeProjectListener(this);
         super.dispose();
     }
 

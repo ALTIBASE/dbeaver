@@ -16,11 +16,12 @@
  */
 package org.jkiss.dbeaver.model.rm;
 
+import org.jkiss.dbeaver.model.messages.ModelMessages;
 import org.jkiss.dbeaver.model.meta.Property;
 import org.jkiss.utils.ArrayUtils;
 import org.jkiss.utils.CommonUtils;
 
-import java.time.OffsetDateTime;
+import java.util.Set;
 
 /**
  * Resource manager API
@@ -50,20 +51,29 @@ public class RMProject extends RMObject {
     private String id;
     private String description;
     private Type type;
-
-    private OffsetDateTime createTime;
+    private Long createTime;
     private String creator;
+    private Set<String> projectPermissions;
 
     public RMProject() {
     }
 
-    public RMProject(String id, String name, String description, Type type, OffsetDateTime createTime, String creator) {
+    public RMProject(
+        String id,
+        String name,
+        String description,
+        Type type,
+        Long createTime,
+        String creator,
+        Set<String> projectPermissions
+    ) {
         super(name);
         this.id = id;
         this.description = description;
         this.type = type;
         this.createTime = createTime;
         this.creator = creator;
+        this.projectPermissions = projectPermissions;
     }
 
     public RMProject(String name) {
@@ -77,6 +87,17 @@ public class RMProject extends RMObject {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getDisplayName() {
+        switch (type) {
+            case GLOBAL:
+                return ModelMessages.project_shared_display_name;
+            case USER:
+                return ModelMessages.project_private_display_name;
+            default:
+                return getName();
+        }
     }
 
     @Override
@@ -106,11 +127,11 @@ public class RMProject extends RMObject {
         this.type = type;
     }
 
-    public OffsetDateTime getCreateTime() {
+    public Long getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(OffsetDateTime createTime) {
+    public void setCreateTime(Long createTime) {
         this.createTime = createTime;
     }
 
@@ -137,4 +158,11 @@ public class RMProject extends RMObject {
         return obj instanceof RMProject && CommonUtils.equalObjects(id, ((RMProject) obj).id);
     }
 
+    public void setProjectPermissions(Set<String> projectPermissions) {
+        this.projectPermissions = projectPermissions;
+    }
+
+    public Set<String> getProjectPermissions() {
+        return projectPermissions;
+    }
 }

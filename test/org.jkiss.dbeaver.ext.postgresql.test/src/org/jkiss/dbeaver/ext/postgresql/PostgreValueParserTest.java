@@ -22,7 +22,6 @@ import org.jkiss.dbeaver.ext.postgresql.model.PostgreDialect;
 import org.jkiss.dbeaver.ext.postgresql.model.data.PostgreArrayValueHandler;
 import org.jkiss.dbeaver.model.DBPDataKind;
 import org.jkiss.dbeaver.model.data.DBDCollection;
-import org.jkiss.dbeaver.model.data.DBDDataFormatter;
 import org.jkiss.dbeaver.model.data.DBDDisplayFormat;
 import org.jkiss.dbeaver.model.data.DBDFormatSettings;
 import org.jkiss.dbeaver.model.exec.DBCException;
@@ -38,7 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.sql.Types;
 import java.util.*;
@@ -120,10 +119,10 @@ public class PostgreValueParserTest {
                 new Object[]{innerCollection1, innerCollection2});
         Assert.assertArrayEquals(new Object[]{ innerCollection3, innerCollection3 },
                 (Object[]) PostgreValueParser.convertStringToValue(session, arrayDoubleItemType, "{{{1.1,22.22},{3.3,44.44}},{{1.1,22.22},{3.3,44.44}}}"));
-        Assert.assertEquals("{{{1.1,22.22},{3.3,44.44}},{1.1,22.22},{3.3,44.44}}}",
-                PostgreValueParser.convertStringToValue(session, arrayDoubleItemType, "{{{1.1,22.22},{3.3,44.44}},{1.1,22.22},{3.3,44.44}}}"));
 
         //Bad input data tests
+        Assert.assertEquals("{{{1.1,22.22},{3.3,44.44}},{1.1,22.22},{3.3,44.44}}}",
+            PostgreValueParser.convertStringToValue(session, arrayDoubleItemType, "{{{1.1,22.22},{3.3,44.44}},{1.1,22.22},{3.3,44.44}}}"));
         Assert.assertEquals("{{{1.1,22.22},3.3,44.44}},{1.1,22.22},{3.3,44.44}",
                 PostgreValueParser.convertStringToValue(session, arrayDoubleItemType, "{{{1.1,22.22},3.3,44.44}},{1.1,22.22},{3.3,44.44}"));
         Assert.assertEquals("{{1.1,22.22},3.3,44.44}},{1.1,22.22},{3.3,",
@@ -231,53 +230,57 @@ public class PostgreValueParserTest {
     }
 
     private void setupGeneralWhenMocks() throws Exception {
-        Mockito.when(dataSource.getSQLDialect()).thenReturn(sqlDialect);
+//        Mockito.when(dataSource.getSQLDialect()).thenReturn(sqlDialect);
         Mockito.when(session.getProgressMonitor()).thenReturn(new VoidProgressMonitor());
 
-        Mockito.when(intItemType.getFullTypeName()).thenReturn("test_intItemType");
+//        Mockito.when(intItemType.getFullTypeName()).thenReturn("test_intItemType");
         Mockito.when(intItemType.getDataKind()).thenReturn(DBPDataKind.ANY);
         Mockito.when(intItemType.getTypeID()).thenReturn(Types.INTEGER);
 
-        Mockito.when(arrayIntItemType.getFullTypeName()).thenReturn("test_arrayIntItemType");
+//        Mockito.when(arrayIntItemType.getFullTypeName()).thenReturn("test_arrayIntItemType");
         Mockito.when(arrayIntItemType.getDataKind()).thenReturn(DBPDataKind.ARRAY);
         Mockito.when(arrayIntItemType.getComponentType(session.getProgressMonitor())).thenReturn(intItemType);
+        Mockito.when(arrayIntItemType.getArrayDelimiter()).thenReturn(",");
 
-        Mockito.when(doubleItemType.getFullTypeName()).thenReturn("test_doubleItemType");
+//        Mockito.when(doubleItemType.getFullTypeName()).thenReturn("test_doubleItemType");
         Mockito.when(doubleItemType.getDataKind()).thenReturn(DBPDataKind.NUMERIC);
         Mockito.when(doubleItemType.getTypeID()).thenReturn(Types.DOUBLE);
 
         Mockito.when(arrayDoubleItemType.getFullTypeName()).thenReturn("test_arrayDoubleItemType");
         Mockito.when(arrayDoubleItemType.getDataKind()).thenReturn(DBPDataKind.ARRAY);
         Mockito.when(arrayDoubleItemType.getComponentType(session.getProgressMonitor())).thenReturn(doubleItemType);
+        Mockito.when(arrayDoubleItemType.getArrayDelimiter()).thenReturn(",");
 
-        Mockito.when(stringItemType.getFullTypeName()).thenReturn("test_stringItemType");
+//        Mockito.when(stringItemType.getFullTypeName()).thenReturn("test_stringItemType");
         Mockito.when(stringItemType.getDataKind()).thenReturn(DBPDataKind.STRING);
         Mockito.when(stringItemType.getTypeID()).thenReturn(Types.VARCHAR);
-        Mockito.when(stringItemType.getDataSource()).thenReturn(dataSource);
+//        Mockito.when(stringItemType.getDataSource()).thenReturn(dataSource);
 
-        Mockito.when(arrayStringItemType.getFullTypeName()).thenReturn("test_arrayStringItemType");
+//        Mockito.when(arrayStringItemType.getFullTypeName()).thenReturn("test_arrayStringItemType");
         Mockito.when(arrayStringItemType.getDataKind()).thenReturn(DBPDataKind.ARRAY);
         Mockito.when(arrayStringItemType.getComponentType(session.getProgressMonitor())).thenReturn(stringItemType);
+        Mockito.when(arrayStringItemType.getArrayDelimiter()).thenReturn(",");
 
-        Mockito.when(structItemType.getFullTypeName()).thenReturn("test_structItemType");
-        Mockito.when(structItemType.getDataKind()).thenReturn(DBPDataKind.STRUCT);
-        Mockito.when(structItemType.getTypeID()).thenReturn(Types.STRUCT);
+//        Mockito.when(structItemType.getFullTypeName()).thenReturn("test_structItemType");
+//        Mockito.when(structItemType.getDataKind()).thenReturn(DBPDataKind.STRUCT);
+//        Mockito.when(structItemType.getTypeID()).thenReturn(Types.STRUCT);
 
-        Mockito.when(arrayStructItemType.getFullTypeName()).thenReturn("test_arrayStructItemType");
-        Mockito.when(arrayStructItemType.getDataKind()).thenReturn(DBPDataKind.ARRAY);
-        Mockito.when(arrayStructItemType.getComponentType(session.getProgressMonitor())).thenReturn(structItemType);
+//        Mockito.when(arrayStructItemType.getFullTypeName()).thenReturn("test_arrayStructItemType");
+//        Mockito.when(arrayStructItemType.getDataKind()).thenReturn(DBPDataKind.ARRAY);
+//        Mockito.when(arrayStructItemType.getComponentType(session.getProgressMonitor())).thenReturn(structItemType);
 
-        Mockito.when(booleanItemType.getFullTypeName()).thenReturn("test_booleanItemType");
+//        Mockito.when(booleanItemType.getFullTypeName()).thenReturn("test_booleanItemType");
         Mockito.when(booleanItemType.getDataKind()).thenReturn(DBPDataKind.BOOLEAN);
         Mockito.when(booleanItemType.getTypeID()).thenReturn(Types.BOOLEAN);
 
-        Mockito.when(arrayBooleanItemType.getFullTypeName()).thenReturn("test_arrayBooleanItemType");
+//        Mockito.when(arrayBooleanItemType.getFullTypeName()).thenReturn("test_arrayBooleanItemType");
         Mockito.when(arrayBooleanItemType.getDataKind()).thenReturn(DBPDataKind.ARRAY);
         Mockito.when(arrayBooleanItemType.getComponentType(session.getProgressMonitor())).thenReturn(booleanItemType);
+        Mockito.when(arrayBooleanItemType.getArrayDelimiter()).thenReturn(",");
 
-        Mockito.when(dataFormatterProfile.createFormatter(DBDDataFormatter.TYPE_NAME_NUMBER, doubleItemType)).thenReturn(numberDataFormatter);
+//        Mockito.when(dataFormatterProfile.createFormatter(DBDDataFormatter.TYPE_NAME_NUMBER, doubleItemType)).thenReturn(numberDataFormatter);
 
-        Mockito.when(dbdFormatSettings.getDataFormatterProfile()).thenReturn(dataFormatterProfile);
+//        Mockito.when(dbdFormatSettings.getDataFormatterProfile()).thenReturn(dataFormatterProfile);
     }
 
 }

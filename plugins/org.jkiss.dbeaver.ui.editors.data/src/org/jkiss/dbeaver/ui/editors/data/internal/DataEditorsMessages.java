@@ -57,6 +57,8 @@ public class DataEditorsMessages extends NLS {
     public static String pref_page_database_resultsets_label_show_attr_ordering_tip;
     public static String pref_page_database_resultsets_label_use_smooth_scrolling;
     public static String pref_page_database_resultsets_label_use_smooth_scrolling_tip;
+    public static String pref_page_database_resultsets_label_show_collections_inline;
+    public static String pref_page_database_resultsets_label_show_collections_inline_tip;
     public static String pref_page_database_resultsets_label_show_boolean_as_checkbox;
     public static String pref_page_database_resultsets_label_show_boolean_as_checkbox_tip;
     public static String pref_page_database_resultsets_label_show_whitespace_characters;
@@ -75,6 +77,7 @@ public class DataEditorsMessages extends NLS {
     public static String pref_page_result_selector_paste_cell_value;
     public static String pref_page_database_resultsets_label_max_def_column_width;
     public static String pref_page_database_resultsets_label_max_def_column_width_tip;
+    public static String pref_page_database_resultsets_link_colors_and_fonts;
     // ResultSetPlainText
     public static String pref_page_database_resultsets_group_plain_text;
     public static String pref_page_database_resultsets_label_value_format;
@@ -112,6 +115,7 @@ public class DataEditorsMessages extends NLS {
 	public static String virtual_structure_editor_table_column_source_datasource;
 	public static String virtual_structure_editor_dialog_button_refresh;
 
+    public static String complex_object_editor_root_element_name;
     public static String complex_object_editor_dialog_menu_copy_element;
     public static String complex_object_editor_dialog_menu_add_element;
     public static String complex_object_editor_dialog_menu_set_element_to_null;
