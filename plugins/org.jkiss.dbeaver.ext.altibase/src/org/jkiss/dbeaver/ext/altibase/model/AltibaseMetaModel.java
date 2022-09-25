@@ -608,7 +608,7 @@ public class AltibaseMetaModel extends GenericMetaModel
     					+ " AND u.user_id = c.user_id"
     					+ " AND u.user_id = t.user_id"
     					+ " AND t.table_id = c.table_id"
-    				    + " AND c.constraint_type IN (1, 2, 3, 7)"
+    				    + " AND c.constraint_type != 0"
     					+ " AND c.constraint_id = ccol.constraint_id"
     					+ " AND ccol.column_id = col.column_id"
     			);
@@ -632,7 +632,6 @@ public class AltibaseMetaModel extends GenericMetaModel
     	int constraintType = JDBCUtils.safeGetInt(dbResult, "CONSTRAINT_TYPE");
 
         switch (constraintType) {
-
 	        case 1:
 	        	return DBSEntityConstraintType.NOT_NULL;
 	        case 2:
@@ -641,26 +640,21 @@ public class AltibaseMetaModel extends GenericMetaModel
 	        	return DBSEntityConstraintType.PRIMARY_KEY;	        	
 	        case 7:
 	        	return DBSEntityConstraintType.CHECK;
-	        /* 
-	         * Unable to assign DBSEntityConstraintType for Altibase specific constraint types.
-	        case 5: // DBSEntityConstraintType doesn't support Timestamp constarint
-	        	return DBSEntityConstraintType.PRIMARY_KEY;
-	        case 6: // DBSEntityConstraintType doesn't support Local Unique constarint
-	        	return ?;
-
-	        // Foreign key must be handled differently.
+	        case 5:
+	        	return AltibaseConstraint.TIMESTAMP;
+	        case 6:
+	        	return AltibaseConstraint.LOCAL_UNIQUE_KEY;
+	        /* Foreign key must be handled separately: c.constraint_type != 0
 	        case 0:
 	        	return DBSEntityConstraintType.FOREIGN_KEY;
-
-	         */
-
+	        	*/
 	    	default:
-	    		log.warn("Unmanageable type: " + constraintType);
-	    		return DBSEntityConstraintType.PSEUDO_KEY;
+	    		String exMsg = String.format("Unknown constraint type [NAME] %s [TYPE] %d", 
+	    									  JDBCUtils.safeGetString(dbResult, "PK_NAME"), constraintType);
+	    		log.error(exMsg);
+	    		throw new DBException(exMsg);
     		}
     }
-
-
     
     private void loadPackages (DBRProgressMonitor monitor, @NotNull GenericObjectContainer container, JDBCSession session, 
     		Map<String, AltibasePackage> packageMap) throws SQLException, DBException {

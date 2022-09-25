@@ -41,16 +41,8 @@ public class AltibaseDataTypeCache extends JDBCBasicDataTypeCache<GenericStructC
         // Load domain types
         List<AltibaseDataType> tmpObjectList = new ArrayList<>();
 
-        /*
-        for (AltibaseFieldType fieldType : AltibaseFieldType.values()) {
-            AltibaseDataType dataType = new AltibaseDataType(dataSource, fieldType);
-            tmpObjectList.add(dataType);
-        }
-        */
-
         try {
             try (JDBCSession session = DBUtils.openMetaSession(monitor, dataSource, "Load Altibase data types")) {
-                // Use CAST to improve performance, binaries are too slow
                 try (JDBCPreparedStatement dbStat = session.prepareStatement(
                     "SELECT * FROM V$DATATYPE ORDER BY TYPE_NAME"))
                 {
@@ -60,7 +52,6 @@ public class AltibaseDataTypeCache extends JDBCBasicDataTypeCache<GenericStructC
                             if (monitor.isCanceled()) {
                                 break;
                             }
-                            // super(owner, valueType, name, remarks, unsigned, searchable, precision, minScale, maxScale);
                             String typeName = JDBCUtils.safeGetString(dbResult, "TYPE_NAME");
                             if (typeName == null) {
                                 continue;
@@ -80,8 +71,6 @@ public class AltibaseDataTypeCache extends JDBCBasicDataTypeCache<GenericStructC
                                 continue;
                             }
 
-                            // GenericStructContainer owner, int valueType, String name, String remarks, boolean unsigned,
-                			//boolean searchable, int precision, int minScale, int maxScale) {
                             AltibaseDataType dataType = new AltibaseDataType(
                                 dataSource, fieldType, typeName, remarks, unsinged, searchabel, precision, minScale, maxScale);
                             tmpObjectList.add(dataType);
@@ -99,5 +88,4 @@ public class AltibaseDataTypeCache extends JDBCBasicDataTypeCache<GenericStructC
 
         mergeCache(tmpObjectList);
     }
-
 }

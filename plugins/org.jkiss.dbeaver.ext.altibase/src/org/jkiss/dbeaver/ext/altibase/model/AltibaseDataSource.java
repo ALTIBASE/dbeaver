@@ -69,48 +69,9 @@ public class AltibaseDataSource extends GenericDataSource implements DBCQueryPla
     
     @Override
     public void initialize(@NotNull DBRProgressMonitor monitor) throws DBException {
-    	  /*
-        // Read metadata
-        try (JDBCSession session = DBUtils.openMetaSession(monitor, this, "Read Altibase metadata")) {
-            // Read metadata
-            try (JDBCPreparedStatement dbStat = session.prepareStatement("SELECT * FROM RDB$TYPES")) {
-                monitor.subTask("Load Firebird types");
-                try (JDBCResultSet dbResult = dbStat.executeQuery()) {
-                    while (dbResult.next()) {
-                        if (monitor.isCanceled()) {
-                            break;
-                        }
-                        String fieldName = JDBCUtils.safeGetString(dbResult, "RDB$FIELD_NAME");
-                        if (fieldName == null) {
-                            continue;
-                        }
-                        fieldName = fieldName.trim();
-                        int fieldType = JDBCUtils.safeGetInt(dbResult, "RDB$TYPE");
-                        String typeName = JDBCUtils.safeGetString(dbResult, "RDB$TYPE_NAME");
-                        if (typeName == null) {
-                            continue;
-                        }
-                        typeName = typeName.trim();
-                        String fieldDescription = JDBCUtils.safeGetString(dbResult, "RDB$SYSTEM_FLAG");
-                        IntKeyMap<MetaFieldInfo> metaFields = this.metaFields.get(fieldName);
-                        if (metaFields == null) {
-                            metaFields = new IntKeyMap<>();
-                            this.metaFields.put(fieldName, metaFields);
-                        }
-                        metaFields.put(fieldType, new MetaFieldInfo(fieldType, typeName, fieldDescription));
-                    }
-                }
-            }
-
-        } catch (SQLException ex) {
-            log.error("Error reading FB metadata", ex);
-        }
-*/
-
-        // Init
         super.initialize(monitor);
         
-        // Global objects such as public synonym.
+        // PublicSchema is for global objects such as public synonym.
         publicSchema = new GenericSchema(this, null, AltibaseConstants.PUBLIC_USER);
         publicSchema.setVirtual(true);
     }
