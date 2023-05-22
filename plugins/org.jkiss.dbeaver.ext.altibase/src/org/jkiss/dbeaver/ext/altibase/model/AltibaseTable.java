@@ -67,6 +67,9 @@ public class AltibaseTable extends GenericTable implements AltibaseTableBase, DB
         return true;
     }
     
+    /*
+     * In order to use a conversion function for geometry type.
+     */
     @Override
     protected void appendSelectSource(DBRProgressMonitor monitor, StringBuilder query, String tableAlias, DBDPseudoAttribute rowIdAttribute) {
     	try {

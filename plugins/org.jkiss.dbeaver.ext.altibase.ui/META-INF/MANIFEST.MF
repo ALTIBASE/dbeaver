@@ -23,7 +23,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui.ide,
  org.eclipse.ui.workbench.texteditor,
  org.jkiss.dbeaver.ext.generic.ui,
- org.jkiss.dbeaver.ext.altibase;bundle-version="1.0.0"
+ org.jkiss.dbeaver.ext.altibase
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-Vendor: Altibase
