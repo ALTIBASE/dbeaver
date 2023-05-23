@@ -179,7 +179,7 @@
          install-size="0"
          version="0.0.0"
          unpack="false"/>
-         
+
    <plugin
          id="org.jkiss.dbeaver.ext.oceanbase"
          download-size="0"
@@ -259,17 +259,24 @@
          unpack="false"/>
 
    <plugin
-           id="org.jkiss.dbeaver.ext.denodo"
-           download-size="0"
-           install-size="0"
-           version="0.0.0"
-           unpack="false"/>
+         id="org.jkiss.dbeaver.ext.denodo"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
-           id="org.jkiss.dbeaver.ext.databricks"
-           download-size="0"
-           install-size="0"
-           version="0.0.0"
-           unpack="false"/>
+         id="org.jkiss.dbeaver.ext.databricks"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="org.jkiss.dbeaver.ext.altibase"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
 </feature>
