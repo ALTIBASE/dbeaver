@@ -39,17 +39,17 @@ public class AltibaseExecutionPlan extends AbstractExecutionPlan {
 	private String query;
 	private List<AltibasePlanNode> rootNodes;
 	
-	public AltibaseExecutionPlan(AltibaseDataSource dataSource, JDBCSession session, String query)
-    {
+	private static final String methodName = "setExplainPlan";
+	private static final String argType = "byte";
+	
+	public AltibaseExecutionPlan(AltibaseDataSource dataSource, JDBCSession session, String query) {
         this.dataSource = dataSource;
         this.session = session;
         this.query = query;
     }
 	
 	
-	public void explain()
-	        throws DBException
-	{
+	public void explain() throws DBException {
 		try {
 			JDBCPreparedStatement dbStat = session.prepareStatement(getQueryString());
 			// Read explained plan
@@ -80,11 +80,8 @@ public class AltibaseExecutionPlan extends AbstractExecutionPlan {
 	}
 
     public String getExplainPlan(JDBCSession session, String query) {
-    	
     	Statement stmt = null;
     	String plan = "";
-    	String methodName = "setExplainPlan";
-    	String argType = "byte";
     	
 		try {
 			Connection conn = session.getOriginal();
@@ -105,7 +102,6 @@ public class AltibaseExecutionPlan extends AbstractExecutionPlan {
 			plan = (String) stmt.getClass().getMethod("getExplainPlan").invoke(stmt);
 		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException
 				| SecurityException | SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} finally
 		{
@@ -113,7 +109,6 @@ public class AltibaseExecutionPlan extends AbstractExecutionPlan {
 				try {
 					stmt.close();
 				} catch (SQLException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -124,8 +119,7 @@ public class AltibaseExecutionPlan extends AbstractExecutionPlan {
     
     // There are two setExplain in Connction class: the first one's argument is boolean, the second one's argument is byte.
     // Return the second one.
-	private Method getMethod4setExplainByteArg(Class class1, String methodName, String argName)
-    {
+	private Method getMethod4setExplainByteArg(Class class1, String methodName, String argName){
 		for(Method method:class1.getDeclaredMethods()) {
 			if (method.getName().equals(methodName))
 			{

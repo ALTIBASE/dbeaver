@@ -20,7 +20,7 @@
     <extension point="org.jkiss.dbeaver.dataSourceView">
         <view
                 id="org.jkiss.dbeaver.ext.altibase.dataSourceWizardView"
-                dataSource="altibase"
+                dataSource="Altibase"
                 targetID="org.jkiss.dbeaver.ext.ui.newConnectionWizard"
                 label="%altibase.dialog.connection.header"
                 class="org.jkiss.dbeaver.ext.altibase.ui.views.AltibaseConnectionPage"
@@ -29,7 +29,7 @@
         <view
                 class="org.jkiss.dbeaver.ext.altibase.ui.views.AltibaseConnectionPage"
                 id="org.jkiss.dbeaver.ext.altibase.dataSourceEditorView"
-                dataSource="generic"
+                dataSource="Altibase"
                 label="%altibase.dialog.connection.header"
                 targetID="org.jkiss.dbeaver.ext.ui.editConnectionDialog">
         </view>

@@ -37,6 +37,7 @@ import org.jkiss.dbeaver.ext.generic.model.GenericDataSource;
 import org.jkiss.dbeaver.ext.generic.model.GenericFunctionResultType;
 import org.jkiss.dbeaver.ext.generic.model.GenericObjectContainer;
 import org.jkiss.dbeaver.ext.generic.model.GenericProcedure;
+import org.jkiss.dbeaver.ext.generic.model.GenericSchema;
 import org.jkiss.dbeaver.ext.generic.model.GenericSequence;
 import org.jkiss.dbeaver.ext.generic.model.GenericStructContainer;
 import org.jkiss.dbeaver.ext.generic.model.GenericSynonym;
@@ -88,7 +89,6 @@ public class AltibaseMetaModel extends GenericMetaModel
     
     public AltibaseMetaModel() {
         super();
-
     }
 
     @Override
@@ -96,6 +96,11 @@ public class AltibaseMetaModel extends GenericMetaModel
         return new AltibaseDataSource(monitor, container, this);
     }
 
+    @Override
+    public boolean isSystemSchema(GenericSchema schema) {
+        return schema.getName().equals("SYSTEM_");
+    }
+    
     @Override
     public AltibaseSchema createSchemaImpl(@NotNull GenericDataSource dataSource, @Nullable GenericCatalog catalog, @NotNull String schemaName) throws DBException {
         return new AltibaseSchema(dataSource, catalog, schemaName);
@@ -450,77 +455,6 @@ public class AltibaseMetaModel extends GenericMetaModel
     public boolean supportsDatabaseTriggers(@NotNull GenericDataSource dataSource) {
         return true;
     }
-
-    /*
-    @Override
-    public JDBCStatement prepareContainerTriggersLoadStatement(@NotNull JDBCSession session, @Nullable GenericStructContainer forParent) throws SQLException {
-        return session.prepareStatement("SELECT * FROM RDB$TRIGGERS WHERE RDB$RELATION_NAME IS NULL");
-    }
-
-    @Override
-    public GenericTrigger createContainerTriggerImpl(@NotNull GenericStructContainer container, @NotNull JDBCResultSet dbResult) throws DBException {
-        String name = JDBCUtils.safeGetStringTrimmed(dbResult, "RDB$TRIGGER_NAME");
-        if (name == null) {
-            return null;
-        }
-        int sequence = JDBCUtils.safeGetInt(dbResult, "RDB$TRIGGER_SEQUENCE");
-        int type = JDBCUtils.safeGetInt(dbResult, "RDB$TRIGGER_TYPE");
-        String description = JDBCUtils.safeGetStringTrimmed(dbResult, "RDB$DESCRIPTION");
-        int systemFlag = JDBCUtils.safeGetInt(dbResult, "RDB$SYSTEM_FLAG");
-        boolean isSystem = true;
-        if (systemFlag == 0) { // System flag value 0 - if user-defined and 1 or more if system
-            isSystem = false;
-        }
-
-        return new FireBirdDatabaseTrigger(
-                    container,
-                    name,
-                    description,
-                    FireBirdTriggerType.getByType(type),
-                    sequence,
-                    isSystem);
-    }
-
-    @Override
-    public List<GenericTrigger> loadTriggers(DBRProgressMonitor monitor, @NotNull GenericStructContainer container, @Nullable GenericTableBase table) throws DBException {
-        try (JDBCSession session = DBUtils.openMetaSession(monitor, container, "Read triggers")) {
-            try (JDBCPreparedStatement dbStat = session.prepareStatement(
-                "SELECT * FROM RDB$TRIGGERS\n" +
-                    "WHERE RDB$RELATION_NAME" + (table == null ? " IS NULL" : "=?"))) {
-                if (table != null) {
-                    dbStat.setString(1, table.getName());
-                }
-                List<GenericTrigger> result = new ArrayList<>();
-
-                try (JDBCResultSet dbResult = dbStat.executeQuery()) {
-                    while (dbResult.next()) {
-                        String name = JDBCUtils.safeGetStringTrimmed(dbResult, "RDB$TRIGGER_NAME");
-                        if (name == null) {
-                            continue;
-                        }
-                        int sequence = JDBCUtils.safeGetInt(dbResult, "RDB$TRIGGER_SEQUENCE");
-                        int type = JDBCUtils.safeGetInt(dbResult, "RDB$TRIGGER_TYPE");
-                        String description = JDBCUtils.safeGetStringTrimmed(dbResult, "RDB$DESCRIPTION");
-                        int systemFlag = JDBCUtils.safeGetInt(dbResult, "RDB$SYSTEM_FLAG");
-                        boolean isSystem = systemFlag > 0; // System flag value 0 - if user-defined and 1 or more if system
-                        FireBirdTableTrigger trigger = new FireBirdTableTrigger(
-                            table,
-                            name,
-                            description,
-                            FireBirdTriggerType.getByType(type),
-                            sequence,
-                            isSystem);
-                        result.add(trigger);
-                    }
-                }
-                return result;
-
-            }
-        } catch (SQLException e) {
-            throw new DBException(e, container.getDataSource());
-        }
-    }
-    */
     
     @Override
     public String getTriggerDDL(@NotNull DBRProgressMonitor monitor, @NotNull GenericTrigger trigger) throws DBException {

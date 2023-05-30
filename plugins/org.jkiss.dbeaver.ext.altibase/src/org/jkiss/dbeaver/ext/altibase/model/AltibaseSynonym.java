@@ -72,7 +72,7 @@ public class AltibaseSynonym extends GenericSynonym implements DBPScriptObject {
 			        AltibaseUtils.getQuotedName(null, getName()), 
 					getReferencedObjectName());
 		} else {
-			ddl = String.format("CREATE SYNONYM %s FOR %s;", 
+			ddl = String.format("CREATE SYNONYM %s FOR %s", 
 			        getFullyQualifiedName(DBPEvaluationContext.DDL), 
 					getReferencedObjectName());
 		}

@@ -28,9 +28,9 @@ public enum AltibaseDataTypeDomain {
 	VARCHAR ("VARCHAR", AltibaseConstants.TYPE_VARCHAR, 	DBPDataKind.STRING, Types.VARCHAR),
 	NCHAR  	("NCHAR", 	AltibaseConstants.TYPE_NCHAR, 		DBPDataKind.STRING, Types.NVARCHAR), // Types.NCHAR returns question mark.
 	NVARCHAR("NVARCHAR",AltibaseConstants.TYPE_NVARCHAR,	DBPDataKind.STRING, Types.NVARCHAR),
-	// encrypted column data type
-	ECHAR	("ECHAR",	AltibaseConstants.TYPE_ECHAR, 		DBPDataKind.STRING, Types.BINARY),
-	EVARCHAR("EVARCHAR",AltibaseConstants.TYPE_EVARCHAR,	DBPDataKind.STRING, Types.BINARY),
+	// encrypted column data type: should not visible to user.
+	//ECHAR	("ECHAR",	AltibaseConstants.TYPE_ECHAR, 		DBPDataKind.STRING, Types.BINARY),
+	//EVARCHAR("EVARCHAR",AltibaseConstants.TYPE_EVARCHAR,	DBPDataKind.STRING, Types.BINARY),
 
 	// number types
 	INTEGER	("INTEGER",  AltibaseConstants.TYPE_INTEGER,	DBPDataKind.NUMERIC, Types.INTEGER),

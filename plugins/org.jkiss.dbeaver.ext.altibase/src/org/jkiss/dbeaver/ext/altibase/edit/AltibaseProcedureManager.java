@@ -60,7 +60,9 @@ public class AltibaseProcedureManager extends GenericProcedureManager {
     private void createOrReplaceProcedureQuery(List<DBEPersistAction> actions, GenericProcedure procedure)
     {
         actions.add(
-                new SQLDatabasePersistAction("Create or replace " + procedure.getProcedureType().name(), procedure.getSource()));
+        		new SQLDatabasePersistAction(
+        				"Create or replace " + procedure.getProcedureType().name(), 
+        				procedure.getSource()));
     }
 
 }
